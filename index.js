@@ -32,7 +32,7 @@ export default class MusicSystem extends ServerModule {
      * @returns {Shoukaku} The class to interact with Lavalin nodes.
      */
     get lava() {
-        return this.getModule('lavalink').conn;
+        return this._m.getModule('lavalink').conn;
     }
 
     /**
