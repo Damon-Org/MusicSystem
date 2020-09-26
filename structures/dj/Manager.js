@@ -1,7 +1,7 @@
 import { GuildMember } from 'discord.js'
 
 import DJUser from './User.js'
-import MODE from './Mode.js'
+import { DJMode } from '../../util/Constants.js'
 
 export default class DJManager {
     /**
@@ -23,7 +23,7 @@ export default class DJManager {
      * @param {GuildMember}
      */
     add(serverMember) {
-        if (this.mode != MODE['MANAGED']) return;
+        if (this.mode != DJMode['MANAGED']) return;
 
         this.users.set(serverMember.id, new DJUser(this, serverMember));
     }
@@ -32,7 +32,7 @@ export default class DJManager {
      * @param {GuildMemberResolvable} guildMemberResolvable
      */
     has(guildMemberResolvable) {
-        if (this.mode != MODE['MANAGED']) return true;
+        if (this.mode != DJMode['MANAGED']) return true;
 
         const serverMemberId = guildMemberResolvable instanceof GuildMember ? guildMemberResolvable.id : guildMemberResolvable;
 
@@ -43,7 +43,7 @@ export default class DJManager {
      * @param {GuildMember}
      */
     join(serverMember) {
-        if (this.mode != MODE['MANAGED']) return;
+        if (this.mode != DJMode['MANAGED']) return;
 
         const djUser = this.users.get(serverMember.id);
 
@@ -53,10 +53,10 @@ export default class DJManager {
     }
 
     /**
-     * @param {Boolean} [hard=false]
+     * @param {boolean} [hard=false]
      */
     reset(hard = false) {
-        if (hard) this.mode = this.music.getModule('guildSetting').get(this.music.server.id, 'dj_mode') || MODE['FREEFORALL'];
+        if (hard) this.mode = this.music.getModule('guildSetting').get(this.music.server.id, 'dj_mode') || DJMode['FREEFORALL'];
         this.playlistLock = false;
 
         if (!this.users)
@@ -73,7 +73,7 @@ export default class DJManager {
      * @param {GuildMember}
      */
     remove(serverMember) {
-        if (this.mode != MODE['MANAGED']) return;
+        if (this.mode != DJMode['MANAGED']) return;
 
         const djUser = this.users.get(serverMember.id);
 
@@ -90,7 +90,7 @@ export default class DJManager {
         djUser.clear();
 
         if (djUser && this.size == 1) {
-            this.setMode(MODE['FREEFORALL']);
+            this.setMode(DJMode['FREEFORALL']);
 
             this.music.channel.send(`${serverMember} has resigned as DJ, all users in voice channel can now use music commands.`);
 
@@ -100,6 +100,10 @@ export default class DJManager {
         this.users.delete(djUser.id);
     }
 
+    /**
+     * @param {number} mode
+     * @param {boolean} persist
+     */
     setMode(mode, persist = false) {
         if (persist) {
             this.music.server.options.update('djMode', mode);
