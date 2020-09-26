@@ -578,7 +578,7 @@ export default class MusicSystem extends ServerModule {
         await this.cacheSongIfNeeded(currentSong);
 
         if (!await this.player.playTrack(currentSong.track, { noReplace: false })) {
-            log.warn('MUSIC_SYSTEM', 'Failed to playTrack, the instance might be broken:', currentSong.track ?? currentSong);
+            this._m.log.warn('MUSIC_SYSTEM', 'Failed to playTrack, the instance might be broken:', currentSong.track ?? currentSong);
 
             this.playNext();
 
@@ -815,7 +815,7 @@ export default class MusicSystem extends ServerModule {
 
         const currentSong = this.queue.active();
 
-        log.info('MUSIC_SYSTEM', `Finished track: ${currentSong ? currentSong.title : '{ REMOVED SONG }'}`);
+        this._m.log.info('MUSIC_SYSTEM', `Finished track: ${currentSong ? currentSong.title : '{ REMOVED SONG }'}`);
 
         this.playNext();
     }
@@ -825,7 +825,7 @@ export default class MusicSystem extends ServerModule {
 
         this.soundActive = true;
 
-        log.info('MUSIC_SYSTEM', 'Started track: ' + currentSong ? currentSong.title : '{ REMOVED SONG }');
+        this._m.log.info('MUSIC_SYSTEM', 'Started track: ' + currentSong ? currentSong.title : '{ REMOVED SONG }');
 
         if (this.end.type == 'TrackStuckEvent') {
             clearTimeout(this.trackStuckTimeout);
