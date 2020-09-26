@@ -1,4 +1,4 @@
-import Eqband from '../structures/equalizer/Band.js'
+import EqBand from '../structures/equalizer/Band.js'
 
 export const DJMode = {
     FREEFORALL: 1,
