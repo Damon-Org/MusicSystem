@@ -1,4 +1,4 @@
-MessageEmbedimport { MessageEmbed } from 'discord.js'
+import { MessageEmbed } from 'discord.js'
 
 import MusicChoice from '../structures/music/Choice.js'
 
