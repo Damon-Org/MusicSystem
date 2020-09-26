@@ -1,4 +1,4 @@
-import MODE from './Mode.js'
+import { DJMode } from '../../util/Constants.js'
 
 export default class DJUser {
     /**
@@ -34,7 +34,7 @@ export default class DJUser {
         this.manager.delete(this.id);
 
         if (this.manager.size == 0) {
-            this.manager.setMode(MODE['FREEFORALL']);
+            this.manager.setMode(DJMode['FREEFORALL']);
 
             if (this._revokeMessage) {
                 this._revokeMessage.then(msg => msg.delete());
