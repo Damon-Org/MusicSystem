@@ -1,9 +1,9 @@
-import Discord from 'discord.js'
+MessageEmbedimport { MessageEmbed } from 'discord.js'
 
-import MusicChoice from './Choice.js'
+import MusicChoice from '../structures/music/Choice.js'
 
-import LavaTrack from './track/LavaTrack.js'
-import SpotifyTrack from './track/SpotifyTrack.js'
+import LavaTrack from '../structures/track/LavaTrack.js'
+import SpotifyTrack from '../structures/track/SpotifyTrack.js'
 
 export default class MusicUtils {
     /**
@@ -15,13 +15,13 @@ export default class MusicUtils {
 
     /**
      * @param {GuildMember} requester The person that initiated the action
-     * @param {String} searchFor The string that should be looked up
-     * @param {Boolean} exception
+     * @param {string} searchFor The string that should be looked up
+     * @param {boolean} exception
      */
     addChoice(requester, searchFor, exception) {
         const choice =
             new MusicChoice(
-                this.music.getModule('api').youtube,
+                this.music._m.getModule('api').youtube,
                 searchFor,
                 exception
             );
@@ -39,7 +39,7 @@ export default class MusicUtils {
     }
 
     /**
-     * @param {Array<String>}
+     * @param {Array<string>}
      */
     checkRequestType(args) {
         if (args.length > 1) {
@@ -62,9 +62,9 @@ export default class MusicUtils {
     /**
      * Creates a new ChoiceEmbed embed
      * @param {Message} msgObj A Discord Message instance
-     * @param {String} searchFor A string to search for in the Youtube API
+     * @param {string} searchFor A string to search for in the Youtube API
      * @param {Message} noticeMsg
-     * @param {Boolean} [exception=false] If the song should be added next up
+     * @param {boolean} [exception=false] If the song should be added next up
      */
     async createNewChoiceEmbed(msgObj, searchFor, noticeMsg, exception = false) {
         const
@@ -85,7 +85,7 @@ export default class MusicUtils {
         }
 
         if (!await this.addChoice(requester, searchFor, exception)) {
-            const richEmbed = new Discord.MessageEmbed()
+            const richEmbed = new MessageEmbed()
                 .setTitle('I could not find the song you requested')
                 .setDescription(`No results returned for ${searchFor}.`)
                 .setColor('#ed4337');
@@ -97,7 +97,7 @@ export default class MusicUtils {
 
         const choice = server.localUsers.getProp(requester.user.id, 'choice');
 
-        const richEmbed = new Discord.MessageEmbed()
+        const richEmbed = new MessageEmbed()
             .setColor('#252422')
             .setDescription(choice.description)
             .setFooter('Choose a song by clicking the matching reaction below');
@@ -123,11 +123,11 @@ export default class MusicUtils {
 
     /**
      * Creates an embed asking if the user would like to add the detected playlist or not
-     * @param {String} origVideoId The original videoId
-     * @param {Object[]} data The fetched playlist
+     * @param {string} origVideoId The original videoId
+     * @param {Array<Object>} data The fetched playlist
      * @param {Message} msgObj
      * @param {Message} noticeMsg
-     * @param {Boolean} [exception=false] The serverMember that made the request
+     * @param {boolean} [exception=false] The serverMember that made the request
      */
     async createPlaylistFoundEmbed(origVideoId, data, msgObj, noticeMsg, exception = false) {
         const
@@ -140,7 +140,7 @@ export default class MusicUtils {
                 voicechannel: msgObj.member.voice.channel
             };
 
-        const richEmbed = new Discord.MessageEmbed()
+        const richEmbed = new MessageEmbed()
             .setAuthor('Playlist detected.')
             .setColor('#252422')
             .setDescription(`I\'ve detected that this song contains a playlist,\nare you sure you want to add **${data.length}** songs?\n\nBy confirming you agree that all songs will be added till the queue limit is hit.\nIf you decline only the original song will be added, if the playlist link does not contain a YouTube video then nothing will be added to the queue.\n\n**Keep in mind that the playlist will be added from the beginning.**`)
@@ -173,9 +173,9 @@ export default class MusicUtils {
      * @param {Message} msgObj The original message that triggered the request
      * @param {VoiceChannel} voiceChannel The voicechannel connected to the request
      * @param {Message} [noticeMsg=null] The message that says "Looking up your request"
-     * @param {Boolean} [exception=false] If the song should be added next up
-     * @param {Boolean} [allowSpam=true] ONLY set this param when adding a playlist
-     * @returns {Boolean} Returns true upon success, false on failure => all actions should be stopped
+     * @param {boolean} [exception=false] If the song should be added next up
+     * @param {boolean} [allowSpam=true] ONLY set this param when adding a playlist
+     * @returns {boolean} Returns true upon success, false on failure => all actions should be stopped
      */
     async handleSongData(track, serverMember, msgObj, voiceChannel, noticeMsg = null, exception = false, allowSpam = true) {
         const musicSystem = this.music;
@@ -210,12 +210,12 @@ export default class MusicUtils {
     }
 
     /**
-     * @param {Array<String>} args
+     * @param {Array<string>} args
      * @param {Message} msgObj
      * @param {GuildMember} requester
      * @param {VoiceChannel} voiceChannel
      * @param {Promise<Message>} noticeMsg
-     * @param {Boolean} [exception=false]
+     * @param {boolean} [exception=false]
      */
     async handleRequest(args, msgObj, requester, voiceChannel, noticeMsg, exception = false) {
         let data = null;
@@ -225,7 +225,7 @@ export default class MusicUtils {
                 data = await this.music.node.rest.resolve(args[0]);
 
                 if (!data) {
-                    const richEmbed = new Discord.MessageEmbed()
+                    const richEmbed = new MessageEmbed()
                         .setTitle('I could not find the track you requested')
                         .setDescription(`No results returned for ${args.join(' ')}.`)
                         .setColor('#ed4337');
@@ -244,7 +244,7 @@ export default class MusicUtils {
                         return true;
                     }
 
-                    const richEmbed = new Discord.MessageEmbed()
+                    const richEmbed = new MessageEmbed()
                         .setTitle('Playlist Error')
                         .setDescription(`A playlist was found but did not contain any songs.`)
                         .setColor('#ed4337');
