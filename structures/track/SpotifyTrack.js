@@ -1,13 +1,11 @@
-import log from '../../../../util/Log.js'
-
 export default class SpotifyTrack {
     /**
      * @param {Object} data Data found by the Spotify REST APi
-     * @param {MainClient} mainClient
+     * @param {Main} main
      * @param {Object} imageOverride Image override for album art
      */
-    constructor(data, mainClient, imageOverride = null) {
-        this.mainClient = mainClient;
+    constructor(data, main, imageOverride = null) {
+        this._m = main;
 
         Object.assign(this, {
             artists: data.artists,
@@ -98,7 +96,7 @@ export default class SpotifyTrack {
             search = null;
 
         do {
-            search = await this.mainClient.getModule('api').youtube.search(this.title);
+            search = await this._m.getModule('api').youtube.search(this.title);
 
             attempt++;
         } while ((!search || search.length == 0 || !search[0].id || typeof search !== 'object') && attempt < 3);
@@ -112,7 +110,7 @@ export default class SpotifyTrack {
         let data = null;
         attempt = 0;
         do {
-            data = await this.mainClient.getModule('lavaLink').conn.getNode().rest.resolve(`https://youtu.be/${search[0].id}`);
+            data = await this._m.getModule('lavaLink').conn.getNode().rest.resolve(`https://youtu.be/${search[0].id}`);
 
             attempt++;
         } while ((data == null || data === true || data.tracks.length == 0) && attempt < 3 );
@@ -125,7 +123,7 @@ export default class SpotifyTrack {
 
         this.track = data.tracks[0].track;
 
-        log.info('API', `Cached song: ${this.title}`);
+        this._m.log.info('API', `Cached song: ${this.title}`);
 
         if (this._done)
             this._done();
