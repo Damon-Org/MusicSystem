@@ -152,3 +152,8 @@ export const EqualizerBands = {
         EqBand(14, -0.04)
     ]
 };
+
+export default {
+    DJMode,
+    EqualizerBands
+};

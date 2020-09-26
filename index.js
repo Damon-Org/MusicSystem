@@ -1,4 +1,5 @@
 import ServerModule from './structures/modules/ServerModule.js'
+import Constants from './util/Constants.js'
 import DJManager from './structures/dj/Manager.js'
 import MusicQueue from './structures/music/Queue.js'
 import ShutdownManager from './util/ShutdownManager.js'
@@ -26,6 +27,10 @@ export default class MusicSystem extends ServerModule {
         });
 
         this.reset();
+    }
+
+    get constants() {
+        return Constants;
     }
 
     /**
