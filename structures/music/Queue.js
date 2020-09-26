@@ -30,7 +30,7 @@ export default class MusicQueue extends Array {
 
     /**
      * @param {LavaTrack|SpotifyTrack} track Data found by the LavaLink REST APi
-     * @returns {Boolean} Returns true on success, false if queue is full
+     * @returns {boolean} Returns true on success, false if queue is full
      */
     add(track) {
         if (this.length == this.maxQueue) return false;
@@ -42,8 +42,8 @@ export default class MusicQueue extends Array {
 
     /**
      * @param {Object} data Data found by the LavaLink REST APi
-     * @param {Number} position
-     * @returns {Boolean} Returns true on success, false if queue is full
+     * @param {number} position
+     * @returns {boolean} Returns true on success, false if queue is full
      */
     addOnPosition(song, position) {
         if (this.length == this.maxLength) return false;
@@ -69,7 +69,7 @@ export default class MusicQueue extends Array {
     }
 
     /**
-     * @param {Number} position Position in queue
+     * @param {number} position Position in queue
      * @returns {Object} data Data found by the LavaLink REST APi
      */
     getFromPosition(position) {
@@ -83,7 +83,7 @@ export default class MusicQueue extends Array {
     }
 
     /**
-     * @param {Number} index
+     * @param {number} index
      */
     hasOnPosition(index) {
         if (this.getFromPosition(index)) {
@@ -94,6 +94,7 @@ export default class MusicQueue extends Array {
 
     /**
      * Removes a song by the position in queue
+     * @returns {boolean} False if the given position is invalid, true on success.
      */
     removeOnPosition(position) {
         position = parseInt(position);
@@ -102,10 +103,8 @@ export default class MusicQueue extends Array {
             position--;
         }
 
-        if (position == 0) {
-            this[this.maxPrequeue + position] = null;
-
-            return true;
+        if (position == 0 || !this[this.maxPrequeue + position]) {
+            return false;
         }
 
         this.splice(this.maxPrequeue + position, 1);
@@ -120,7 +119,7 @@ export default class MusicQueue extends Array {
     reset() {
         /**
          * Is repeat enabled
-         * @type {Boolean}
+         * @type {boolean}
          */
         this.repeat = false;
 
@@ -132,11 +131,10 @@ export default class MusicQueue extends Array {
     }
 
     reverse() {
-        const
-            bottomLimit = this.start,
-            topLimit = this.length - 1,
-            // this.slice would return Queue instead of primitive Array so we "cast" it to an Array below
-            tempQueue = [...this.slice(bottomLimit, topLimit)];
+        const bottomLimit = this.start;
+        const topLimit = this.length - 1;
+        // this.slice would return Queue instead of primitive Array so we "cast" it to an Array below
+        const tempQueue = [...this.slice(bottomLimit, topLimit)];
 
         tempQueue.reverse();
 
@@ -152,19 +150,23 @@ export default class MusicQueue extends Array {
         }
     }
 
+    /**
+     * Shuffles the queue without any priority
+     */
     shuffle() {
-        const
-            bottomLimit = this.start,
-            topLimit = this.length - 1;
+        const bottomLimit = this.start;
+        const topLimit = this.length - 1;
 
-        let
-            tempQueue = this.slice(bottomLimit, topLimit),
-            currentIndex = tempQueue.length - 1,
-            temporaryValue,
-            randomIndex;
+        let tempQueue = this.slice(bottomLimit, topLimit);
+        let currentIndex = tempQueue.length - 1;
+        let temporaryValue, randomIndex;
 
         while (0 !== currentIndex) {
-            randomIndex = Math.round(Math.random() * currentIndex);
+            if (currentIndex === (this.maxPrequeue - bottomLimit)) continue;
+
+            do {
+                randomIndex = Math.round(Math.random() * currentIndex);
+            } while (randomIndex === (this.maxPrequeue - bottomLimit))
 
             temporaryValue = tempQueue[currentIndex];
             tempQueue[currentIndex] = tempQueue[randomIndex];
