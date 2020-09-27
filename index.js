@@ -9,7 +9,7 @@ export default class MusicSystem extends ServerModule {
     _djManager = new DJManager(this);
     _queue = new MusicQueue();
     _shutdown = new ShutdownManager(this);
-    _util = new MusicUtil(this);
+    _util = new MusicUtils(this);
 
     /**
      * @param {Main} main
@@ -45,6 +45,13 @@ export default class MusicSystem extends ServerModule {
      */
     get node() {
         return this.lava.getNode();
+    }
+
+    /**
+     * @returns {MusicUtils}
+     */
+    get util() {
+        return this._util;
     }
 
     /**
