@@ -686,9 +686,9 @@ export default class MusicSystem extends ServerModule {
 
         this.disableOldPlayer(true);
 
-        this.djManager.reset(true);
-        this.shutdown.reset();
-        this.queue.reset();
+        this._djManager.reset(true);
+        this._shutdown.reset();
+        this._queue.reset();
 
         if (this.player) this.player.removeAllListeners();
 
