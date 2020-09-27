@@ -79,7 +79,7 @@ export default class MusicSystem extends ServerModule {
      */
     async cacheSongIfNeeded(track = null) {
         if (track == null) {
-            track = this.queue.getFromPosition(2);
+            track = this._queue.getFromPosition(2);
 
             if (track == null) return;
         }
@@ -111,7 +111,7 @@ export default class MusicSystem extends ServerModule {
     async createNewPlayer() {
         this.updateSongState();
 
-        const track = this.queue.active();
+        const track = this._queue.active();
         if (this.lastMsg && this.channel.lastMessageID == this.lastMsg.id) {
             EmbedUtils.editEmbed(this.lastMsg, {
                 author: { name: track.full_author },
@@ -354,7 +354,7 @@ export default class MusicSystem extends ServerModule {
     }
 
     nodeError(err) {
-        this.shutdown.instant();
+        this._shutdown.instant();
     }
 
     /**
@@ -434,10 +434,10 @@ export default class MusicSystem extends ServerModule {
      * Will go through several checks of things that have to get updated before moving on to the next song
      */
     async playNext() {
-        const activeSong = this.queue.active();
+        const activeSong = this._queue.active();
 
         if (activeSong == null) {
-            this.queue.remove(null);
+            this._queue.remove(null);
         }
         else if (activeSong.repeat) {
             this.continueQueue();
@@ -445,9 +445,9 @@ export default class MusicSystem extends ServerModule {
             return;
         }
 
-        if (!this.doNotSkip && this.queue.getFromPosition(2) == null) {
-            if (this.queue.repeat) {
-                this.queue.rewind();
+        if (!this.doNotSkip && this._queue.getFromPosition(2) == null) {
+            if (this._queue.repeat) {
+                this._queue.rewind();
 
                 this.continueQueue();
                 return;
@@ -455,13 +455,13 @@ export default class MusicSystem extends ServerModule {
 
             this.disableOldPlayer(true);
             this.channel.send(`Queue has been concluded and the bot will leave in 5 minutes, type the \`restart\` command to requeue your the old queue (only if within those same 5 minutes).`);
-            this.shutdown.delay('leave', 3e5);
+            this._shutdown.delay('leave', 3e5);
 
             return;
         }
 
         if (!this.doNotSkip) {
-            this.queue.shift();
+            this._queue.shift();
         }
         this.doNotSkip = false;
 
@@ -475,20 +475,20 @@ export default class MusicSystem extends ServerModule {
     async playPrevious() {
         this.doNotSkip = true;
 
-        if (this.queue.active() == null) {
+        if (this._queue.active() == null) {
             // Remove the current active song
-            this.queue.remove(null);
+            this._queue.remove(null);
 
-            this.queue.unshift(null);
+            this._queue.unshift(null);
 
             if (!await this.player.stopTrack()) this.soundEnd();
         }
-        else if ((this.queue.active()).repeat) {
-            (this.queue.active()).repeat = false;
+        else if ((this._queue.active()).repeat) {
+            (this._queue.active()).repeat = false;
         }
 
-        if (this.queue.getFromPosition(-1) != null) {
-            this.queue.unshift(null);
+        if (this._queue.getFromPosition(-1) != null) {
+            this._queue.unshift(null);
 
             if (!await this.player.stopTrack()) this.soundEnd();
 
@@ -505,26 +505,26 @@ export default class MusicSystem extends ServerModule {
      * @returns {boolean} False if the current song was removed, true otherwise.
      */
     playerRepeatToggle() {
-        if (this.queue.active() == null) {
+        if (this._queue.active() == null) {
             return false;
         }
 
         const
-            queueRepeat = this.queue.repeat,
-            songRepeat = (this.queue.active()).repeat;
+            queueRepeat = this._queue.repeat,
+            songRepeat = (this._queue.active()).repeat;
 
         if (!songRepeat) {
             if (!queueRepeat) {
-                (this.queue.active()).repeat = true;
+                (this._queue.active()).repeat = true;
             }
             else {
-                (this.queue.active()).repeat = false;
+                (this._queue.active()).repeat = false;
             }
-            this.queue.repeat = false;
+            this._queue.repeat = false;
         }
         else {
-            this.queue.repeat = true;
-            (this.queue.active()).repeat = false;
+            this._queue.repeat = true;
+            (this._queue.active()).repeat = false;
         }
 
         this.updateSongState();
@@ -554,7 +554,7 @@ export default class MusicSystem extends ServerModule {
 
                     this.channel.send(richEmbed);
 
-                    this.shutdown.instant();
+                    this._shutdown.instant();
                     return false;
                 }
 
@@ -566,7 +566,7 @@ export default class MusicSystem extends ServerModule {
 
                     this.channel.send(richEmbed);
 
-                    this.shutdown.instant();
+                    this._shutdown.instant();
                     return false;
                 }
             }
@@ -578,7 +578,7 @@ export default class MusicSystem extends ServerModule {
             this.voiceChannel = voiceChannel;
         }
 
-        const currentSong = this.queue.active();
+        const currentSong = this._queue.active();
         if (currentSong.broken) {
             this.channel.send(`No equivalent video could be found on YouTube for **${currentSong.title}**`);
 
@@ -613,7 +613,7 @@ export default class MusicSystem extends ServerModule {
      * @returns {boolean}
      */
     queueExists() {
-        return (this.queue.active() != null && this.queue.length >= this.queue.maxPrequeue) || this.soundActive;
+        return (this._queue.active() != null && this._queue.length >= this._queue.maxPrequeue) || this.soundActive;
     }
 
     /**
@@ -624,13 +624,13 @@ export default class MusicSystem extends ServerModule {
         if (!queueNumber || queueNumber == '' || queueNumber.length == 0) {
             queueNumber = 1;
         }
-        else if (isNaN(queueNumber) || queueNumber < -this.queue.maxPrequeue || queueNumber == 0) return false;
+        else if (isNaN(queueNumber) || queueNumber < -this._queue.maxPrequeue || queueNumber == 0) return false;
 
         queueNumber = parseInt(queueNumber);
 
-        if (!this.queue.hasOnPosition(queueNumber)) return false;
+        if (!this._queue.hasOnPosition(queueNumber)) return false;
 
-        return this.queue.removeOnPosition(queueNumber);
+        return this._queue.removeOnPosition(queueNumber);
     }
 
     /**
@@ -638,13 +638,13 @@ export default class MusicSystem extends ServerModule {
      * @returns {boolean} Returns the new boolean state of the queue
      */
     repeatQueueToggle() {
-        const queueRepeat = this.queue.repeat;
+        const queueRepeat = this._queue.repeat;
 
-        if (this.queue.active() != null) {
-            (this.queue.active()).repeat = false;
+        if (this._queue.active() != null) {
+            (this._queue.active()).repeat = false;
         }
 
-        this.queue.repeat = !queueRepeat;
+        this._queue.repeat = !queueRepeat;
 
         this.updateSongState();
         embedUtils.editEmbed(this.lastMsg, {
@@ -654,7 +654,7 @@ export default class MusicSystem extends ServerModule {
             }
         });
 
-        return this.queue.repeat;
+        return this._queue.repeat;
     }
 
     /**
@@ -662,9 +662,9 @@ export default class MusicSystem extends ServerModule {
      * @returns {boolean} The new boolean state of the current song repeat
      */
     repeatToggle() {
-        const songRepeat = (this.queue.active()).repeat;
+        const songRepeat = (this._queue.active()).repeat;
 
-        (this.queue.active()).repeat = !songRepeat;
+        (this._queue.active()).repeat = !songRepeat;
 
         this.updateSongState();
         EmbedUtils.editEmbed(this.lastMsg, {
@@ -674,7 +674,7 @@ export default class MusicSystem extends ServerModule {
             }
         });
 
-        return (this.queue.active()).repeat;
+        return (this._queue.active()).repeat;
     }
 
     /**
@@ -762,22 +762,22 @@ export default class MusicSystem extends ServerModule {
      */
     async skipTo(queueNumber) {
         if (queueNumber == 1) return true;
-        if (isNaN(queueNumber) || queueNumber < -this.queue.maxPrequeue || queueNumber == 0) return false;
+        if (isNaN(queueNumber) || queueNumber < -this._queue.maxPrequeue || queueNumber == 0) return false;
 
         queueNumber = parseInt(queueNumber);
 
-        if (!this.queue.hasOnPosition(queueNumber)) return false;
+        if (!this._queue.hasOnPosition(queueNumber)) return false;
 
         const loopCount = queueNumber < 0 ? (queueNumber*-1) : queueNumber - 1;
         this.doNotSkip = true;
         this.paused = false;
 
-        const nextSong = this.queue.getFromPosition(queueNumber);
+        const nextSong = this._queue.getFromPosition(queueNumber);
         await this.cacheSongIfNeeded(nextSong);
 
         for (let i = 0; i < loopCount; i++) {
-            if (queueNumber < 0) this.queue.unshift(null);
-            else this.queue.shift(null);
+            if (queueNumber < 0) this._queue.unshift(null);
+            else this._queue.shift(null);
         }
 
         if (!await this.player.stopTrack()) this.soundEnd();
@@ -825,7 +825,7 @@ export default class MusicSystem extends ServerModule {
             return;
         }
 
-        const currentSong = this.queue.active();
+        const currentSong = this._queue.active();
 
         this._m.log.info('MUSIC_SYSTEM', `Finished track: ${currentSong ? currentSong.title : '{ REMOVED SONG }'}`);
 
@@ -833,7 +833,7 @@ export default class MusicSystem extends ServerModule {
     }
 
     soundStart() {
-        const currentSong = this.queue.active();
+        const currentSong = this._queue.active();
 
         this.soundActive = true;
 
@@ -868,15 +868,15 @@ export default class MusicSystem extends ServerModule {
             color: '#32cd32'
         };
 
-        if (this.queue.active() == null) {
+        if (this._queue.active() == null) {
             this.songState.footer = 'Song has been removed and repeat has been disabled.';
         }
-        else if ((this.queue.active()).repeat) {
+        else if ((this._queue.active()).repeat) {
             this.songState.footer = 'Repeat: On';
             this.songState.color = '#cccccc';
         }
 
-        if (this.queue.repeat && this.queue.active() && !(this.queue.active()).repeat) {
+        if (this._queue.repeat && this._queue.active() && !(this._queue.active()).repeat) {
             this.songState.footer += ' | Playlist repeat: On';
         }
 
