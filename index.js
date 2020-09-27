@@ -205,7 +205,7 @@ export default class MusicSystem extends ServerModule {
 
             this.lastMsg.reactions.removeAll()
             .catch(err => {
-                this.channel.send(`Unknown error occured\nThis generated the following error: \`\`\`js\n${err.stack}\`\`\`Contact ${this.mainClient.config.creator} on Discord if this keeps occuring.`);
+                this.channel.send(`Unknown error occured\nThis generated the following error: \`\`\`js\n${err.stack}\`\`\`Contact ${this._m.config.creator} on Discord if this keeps occuring.`);
             });
         }
     }
@@ -242,7 +242,7 @@ export default class MusicSystem extends ServerModule {
      */
     isDamonInVC(voiceChannel) {
         if (!voiceChannel) return false;
-        return voiceChannel.members.has(this.mainClient.user.id);
+        return voiceChannel.members.has(this._m.user.id);
     }
 
     /**
