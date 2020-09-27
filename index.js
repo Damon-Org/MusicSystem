@@ -55,6 +55,20 @@ export default class MusicSystem extends ServerModule {
     }
 
     /**
+     * @returns {Queue}
+     */
+    get queue() {
+        return this._queue;
+    }
+
+    /**
+     * @returns {ShutdownManager}
+     */
+    get shutdown() {
+        return this._shutdown;
+    }
+
+    /**
      * @returns {MusicUtils}
      */
     get util() {
