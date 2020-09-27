@@ -34,6 +34,13 @@ export default class MusicSystem extends ServerModule {
     }
 
     /**
+     * @returns {DJManager}
+     */
+    get djManager() {
+        return this._djManager;
+    }
+
+    /**
      * @returns {Shoukaku} The class to interact with Lavalin nodes.
      */
     get lava() {
