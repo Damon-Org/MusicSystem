@@ -768,7 +768,7 @@ export default class MusicSystem extends ServerModule {
 
             this.updateSongState();
 
-            EmbedUtils.editEmbed(this.lastMsg, {
+            this._m.embedUtils.editEmbed(this.lastMsg, {
                 color: this.songState.color,
                 footer: {
                     text: this.songState.footer
