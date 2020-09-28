@@ -162,7 +162,10 @@ export default class MusicQueue extends Array {
         let temporaryValue, randomIndex;
 
         while (0 !== currentIndex) {
-            if (currentIndex === (this.maxPrequeue - bottomLimit)) continue;
+            if (currentIndex === (this.maxPrequeue - bottomLimit)) {
+                currentIndex--;
+                continue;
+            }
 
             do {
                 randomIndex = Math.round(Math.random() * currentIndex);
