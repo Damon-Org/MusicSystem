@@ -138,7 +138,7 @@ export default class MusicSystem extends ServerModule {
 
         const track = this._queue.active();
         if (this.lastMsg && this.channel.lastMessageID == this.lastMsg.id) {
-            EmbedUtils.editEmbed(this.lastMsg, {
+            this._m.embedUtils.editEmbed(this.lastMsg, {
                 author: { name: track.full_author },
                 color: this.songState.color,
                 description: `Requested by: **${track.requester}**`,
