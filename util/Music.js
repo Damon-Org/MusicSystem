@@ -276,7 +276,7 @@ export default class MusicUtils {
                         const spotifyTrack =
                             new SpotifyTrack(
                                 isPlaylist ? item.track : item,
-                                this.music.mainClient,
+                                this.music._m,
                                 !isPlaylist ? playlist.images[0].url : null
                             );
 
@@ -288,7 +288,7 @@ export default class MusicUtils {
                 else if (spotify.includes('/track/')) {
                     const track = (await this.music._m.getModule('api').spotify.getTrack(spotify.split('/track/')[1])).body;
 
-                    data = new SpotifyTrack(track, this.music.mainClient);
+                    data = new SpotifyTrack(track, this.music._m);
                 }
                 else {
                     msgObj.channel.send('I have no idea what to do with that spotify link? <:thinking_hard:560389998806040586>')
