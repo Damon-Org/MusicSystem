@@ -1,9 +1,9 @@
 import { MessageEmbed } from 'discord.js'
-import DJManager from './structures/dj/Manager.js'
-import MusicQueue from './structures/music/Queue.js'
-import MusicUtils from './util/Music.js'
-import ShutdownManager from './util/ShutdownManager.js'
-import SpotifyTrack from './structures/track/SpotifyTrack.js'
+import DJManager from '../dj/Manager.js'
+import MusicQueue from './Queue.js'
+import MusicUtils from '../../util/Music.js'
+import ShutdownManager from '../../util/ShutdownManager.js'
+import SpotifyTrack from '../track/SpotifyTrack.js'
 
 export default class MusicSystem {
     djManager = new DJManager(this);
