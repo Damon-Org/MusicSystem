@@ -1,10 +1,10 @@
-import ServerModule from './structures/modules/ServerModule.js'
+this._m.embedUtilsimport ServerModule from './structures/modules/ServerModule.js'
 import { MessageEmbed } from 'discord.js'
 import Constants from './util/Constants.js'
 import DJManager from './structures/dj/Manager.js'
 import MusicQueue from './structures/music/Queue.js'
-import ShutdownManager from './util/ShutdownManager.js'
 import MusicUtils from './util/Music.js'
+import ShutdownManager from './util/ShutdownManager.js'
 import SpotifyTrack from './structures/track/SpotifyTrack.js'
 
 export default class MusicSystem extends ServerModule {
@@ -200,7 +200,7 @@ export default class MusicSystem extends ServerModule {
      */
     disableOldPlayer(force = false) {
         if (this.lastMsg && !this.lastMsg.deleted && (this.channel.lastMessageID != this.lastMsg.id || force)) {
-            EmbedUtils.editEmbed(this.lastMsg, {
+            this._m.embedUtils.editEmbed(this.lastMsg, {
                 color: '#4f545c'
             });
 
@@ -427,7 +427,7 @@ export default class MusicSystem extends ServerModule {
 
             this.updateSongState();
 
-            EmbedUtils.editEmbed(this.lastMsg, {
+            this._m.embedUtils.editEmbed(this.lastMsg, {
                 color: this.songState.color,
                 footer: {
                     text: this.songState.footer
@@ -552,7 +552,7 @@ export default class MusicSystem extends ServerModule {
 
         this.updateSongState();
 
-        EmbedUtils.editEmbed(this.lastMsg, {
+        this._m.embedUtils.editEmbed(this.lastMsg, {
             color: this.songState.color,
             footer: {
                 text: this.songState.footer
@@ -670,7 +670,7 @@ export default class MusicSystem extends ServerModule {
         this._queue.repeat = !queueRepeat;
 
         this.updateSongState();
-        embedUtils.editEmbed(this.lastMsg, {
+        this._m.embedUtils.editEmbed(this.lastMsg, {
             color: this.songState.color,
             footer: {
                 text: this.songState.footer
@@ -690,7 +690,7 @@ export default class MusicSystem extends ServerModule {
         (this._queue.active()).repeat = !songRepeat;
 
         this.updateSongState();
-        EmbedUtils.editEmbed(this.lastMsg, {
+        this._m.embedUtils.editEmbed(this.lastMsg, {
             color: this.songState.color,
             footer: {
                 text: this.songState.footer
