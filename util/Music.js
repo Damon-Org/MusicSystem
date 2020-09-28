@@ -1,4 +1,4 @@
-import { MessageEmbed } from 'discord.js'
+this.music._m.getModuleimport { MessageEmbed } from 'discord.js'
 
 import MusicChoice from '../structures/music/Choice.js'
 
@@ -266,8 +266,8 @@ export default class MusicUtils {
                         isPlaylist = spotify.includes('/playlist/'),
                         playlist =
                             isPlaylist
-                            ? (await this.music.getModule('api').spotify.getPlaylist(spotify.split('/playlist/')[1])).body
-                            : (await this.music.getModule('api').spotify.getAlbum(spotify.split('/album/')[1])).body;
+                            ? (await this.music._m.getModule('api').spotify.getPlaylist(spotify.split('/playlist/')[1])).body
+                            : (await this.music._m.getModule('api').spotify.getAlbum(spotify.split('/album/')[1])).body;
 
                     noticeMsg.then(msg => msg.delete());
                     msgObj.channel.send(`I added the ${isPlaylist ? 'playlist' : 'album'} **${playlist.name}** with **${playlist.tracks.items.length}** tracks!`);
@@ -286,7 +286,7 @@ export default class MusicUtils {
                     return true;
                 }
                 else if (spotify.includes('/track/')) {
-                    const track = (await this.music.getModule('api').spotify.getTrack(spotify.split('/track/')[1])).body;
+                    const track = (await this.music._m.getModule('api').spotify.getTrack(spotify.split('/track/')[1])).body;
 
                     data = new SpotifyTrack(track, this.music.mainClient);
                 }
