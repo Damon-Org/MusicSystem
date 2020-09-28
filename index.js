@@ -24,6 +24,8 @@ export default class MusicSystem extends ServerModule {
             name: 'music',
             scope: 'server',
             requires: [
+                'api',
+                'guildSetting',
                 'lavalink'
             ]
         });
