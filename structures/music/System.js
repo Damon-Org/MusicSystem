@@ -15,6 +15,8 @@ export default class MusicSystem {
      * @param {Music} music
      */
     constructor(music) {
+        Object.assign(music, this);
+
         this.reset();
     }
 

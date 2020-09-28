@@ -31,8 +31,7 @@ export default class Music extends ServerModule {
             ]
         });
 
-        this._music = new MusicSystem();
-        Object.assign(this, this._music);
+        this._music = new MusicSystem(this);
     }
 
     get constants() {
