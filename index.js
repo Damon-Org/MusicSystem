@@ -1,4 +1,5 @@
 import ServerModule from './structures/modules/ServerModule.js'
+import { MessageEmbed } from 'discord.js'
 import Constants from './util/Constants.js'
 import DJManager from './structures/dj/Manager.js'
 import MusicQueue from './structures/music/Queue.js'
@@ -152,7 +153,7 @@ export default class MusicSystem extends ServerModule {
         this.disableOldPlayer(true);
 
         const
-            richEmbed = new Discord.MessageEmbed()
+            richEmbed = new MessageEmbed()
                 .setAuthor(track.author)
                 .setTitle(track.title)
                 .setThumbnail(track.image ? track.image : null)
@@ -337,7 +338,7 @@ export default class MusicSystem extends ServerModule {
 
         if (yesnoOption) {
             if (!playlistObj.videoId) {
-                const richEmbed = new Discord.MessageEmbed()
+                const richEmbed = new MessageEmbed()
                     .setTitle('Playlist Exception.')
                     .setDescription(`Playlist link did not contain a song to select.`)
                     .setColor('#ed4337');
@@ -349,7 +350,7 @@ export default class MusicSystem extends ServerModule {
 
             const data = await this.node.rest.resolve(`https://youtube.com/watch?v=${playlistObj.videoId}`);
             if (!data) {
-                const richEmbed = new Discord.MessageEmbed()
+                const richEmbed = new MessageEmbed()
                     .setTitle('No results returned.')
                     .setDescription(`I could not find the track you requested or access to this track is limited.\nPlease try again with something other than what you tried to search for.`)
                     .setColor('#ed4337');
@@ -569,7 +570,7 @@ export default class MusicSystem extends ServerModule {
         if (!this.voiceChannel) {
             if (!this.isDamonInVC(voiceChannel)) {
                 if (voiceChannel.full && !voiceChannel.guild.me.hasPermission('ADMINISTRATOR')) {
-                    const richEmbed = new Discord.MessageEmbed()
+                    const richEmbed = new MessageEmbed()
                         .setTitle('Channel Full')
                         .setColor('#ff0033')
                         .setDescription('Voicechannel is full, try kicking someone or make the voicechannel size larger.');
@@ -581,7 +582,7 @@ export default class MusicSystem extends ServerModule {
                 }
 
                 if (!voiceChannel.joinable) {
-                    const richEmbed = new Discord.MessageEmbed()
+                    const richEmbed = new MessageEmbed()
                         .setTitle('Insufficient permissions')
                         .setColor('#ff0033')
                         .setDescription('I do not have permission to join your channel.');
