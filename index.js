@@ -1,4 +1,4 @@
-this._m.embedUtilsimport ServerModule from './structures/modules/ServerModule.js'
+import ServerModule from './structures/modules/ServerModule.js'
 import { MessageEmbed } from 'discord.js'
 import Constants from './util/Constants.js'
 import DJManager from './structures/dj/Manager.js'
