@@ -21,7 +21,7 @@ export default class MusicUtils {
     addChoice(requester, searchFor, exception) {
         const choice =
             new MusicChoice(
-                this.music._m.getModule('api').youtube,
+                this.music.getModule('api').youtube,
                 searchFor,
                 exception
             );
@@ -150,20 +150,16 @@ export default class MusicUtils {
         noticeMsg.then(msg => msg.delete());
         newMsg = await newMsg;
 
+        const emojis = ['✅', '❎'];
+
+        const reactionInterface = this.music.getModule('reactionInterface');
+        const reactionListener = reactionListener.createReactionListener(newMsg, emojis, 'add');
+        reactionListener.on('reaction', (emoji, user) => {
+
+        });
+
         playlistObj.msgObj = newMsg;
         server.localUsers.setProp(msgObj.author.id, 'playlist', playlistObj);
-
-        const emojis = ['✅', '❎'];
-        emojis.forEach(async emoji => {
-            if (!newMsg.deleted) {
-                await newMsg.react(emoji)
-                .catch(e => {
-                    if (e.message != 'Unknown Message') {
-                        console.log(e.stack);
-                    }
-                });
-            }
-        });
     }
 
     /**
