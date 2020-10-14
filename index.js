@@ -34,6 +34,10 @@ export default class Music extends ServerModule {
         Object.assign(this, new MusicSystem(this));
     }
 
+    get constants() {
+        return Constants;
+    }
+
     /**
      * @private
      * @param {Guild} guild
