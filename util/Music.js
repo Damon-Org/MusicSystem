@@ -127,24 +127,18 @@ export default class MusicUtils {
      * @param {Array<Object>} data The fetched playlist
      * @param {Message} msgObj
      * @param {Message} noticeMsg
-     * @param {boolean} [exception=false] The serverMember that made the request
+     * @param {boolean} [exception=false]
      */
     async createPlaylistFoundEmbed(origVideoId, data, msgObj, noticeMsg, exception = false) {
-        const
-            server = this.music.server,
-            playlistObj = {
-                exception: false,
-                playlist: data,
-                requester: msgObj.member,
-                videoId: origVideoId,
-                voicechannel: msgObj.member.voice.channel
-            };
+        const server = this.music.server;
+        const serverMember = msgObj.member;
+        const voiceChannel = serverMember.voice.channel;
 
         const richEmbed = new MessageEmbed()
             .setAuthor('Playlist detected.')
             .setColor('#252422')
             .setDescription(`I\'ve detected that this song contains a playlist,\nare you sure you want to add **${data.length}** songs?\n\nBy confirming you agree that all songs will be added till the queue limit is hit.\nIf you decline only the original song will be added, if the playlist link does not contain a YouTube video then nothing will be added to the queue.\n\n**Keep in mind that the playlist will be added from the beginning.**`)
-            .setFooter(`playlist_detected for https://youtu.be/${origVideoId}`);
+            .setFooter(`Playlist Detected`);
 
         let newMsg = msgObj.reply(richEmbed);
         noticeMsg.then(msg => msg.delete());
@@ -155,11 +149,48 @@ export default class MusicUtils {
         const reactionInterface = this.music.getModule('reactionInterface');
         const reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'add');
         reactionListener.on('reaction', (emoji, user) => {
+            if (serverMember.user.id != user.id || !voiceChannel) return;
+            reactionListener.cleanup();
 
+            newMsg.delete();
+
+            if (emoji == emojis[0]) {
+                for (let i = 0; i < data.length; i++) {
+                    const song = new LavaTrack(data[i]);
+                    if (!await this.handleSongData(song, serverMember, msgObj, voiceChannel, null, false, false)) break;
+                }
+
+                newMsg.channel.send('Successfully added playlist!');
+
+                return;
+            }
+
+            if (!origVideoId) {
+                const richEmbed = new MessageEmbed()
+                    .setTitle('Playlist Exception.')
+                    .setDescription(`Playlist link did not contain a song to select.`)
+                    .setColor('#ed4337');
+
+                newMsg.channel.send(richEmbed);
+
+                return;
+            }
+
+            const data = await this.music.node.rest.resolve(`https://youtu.be/${origVideoId}`);
+            if (!data) {
+                const richEmbed = new MessageEmbed()
+                    .setTitle('No results returned.')
+                    .setDescription(`I could not find the track you requested or access to this track is limited.\nPlease try again with something other than what you tried to search for.`)
+                    .setColor('#ed4337');
+
+                newMsg.channel.send(richEmbed);
+
+                return;
+            }
+
+            data = new LavaTrack(data);
+            this.handleSongData(data, serverMember, msgObj, voiceChannel, null, exception);
         });
-
-        playlistObj.msgObj = newMsg;
-        server.localUsers.setProp(msgObj.author.id, 'playlist', playlistObj);
     }
 
     /**
