@@ -45,7 +45,7 @@ export default class Music extends ServerModule {
      * @param {VoiceChannel} voiceChannel
      */
     _voiceJoin(guild, serverMember, voiceChannel) {
-        const server = this.servers.get(guild);
+        const server = this.servers.get(guild, false);
 
         if (!server.music.queueExists()) return;
 
@@ -63,7 +63,7 @@ export default class Music extends ServerModule {
      * @param {VoiceChannel} voiceChannel
      */
     _voiceLeave(guild, serverMember, voiceChannel) {
-        const server = this.servers.get(guild);
+        const server = this.servers.get(guild, false);
 
         if (!server.music.queueExists() || !server.music.isDamonInVC(voiceChannel)) return;
 
