@@ -14,6 +14,20 @@ export default class MusicSystem {
     }
 
     /**
+     * @returns {Shoukaku} The class to interact with Lavalin nodes.
+     */
+    get lava() {
+        return this._m.getModule('lavalink').conn;
+    }
+
+    /**
+     * @returns Returns a lavalink node that is the least loaded.
+     */
+    get node() {
+        return this.lava.getNode();
+    }
+
+    /**
      * Adds a song to the queue together with its requester
      * @param {LavaTrack|SpotifyTrack} track Data found by the LavaLink REST APi
      * @param {GuildMember} serverMember A Discord.GuildMember instance
@@ -644,7 +658,7 @@ export default class MusicSystem {
         if (disconnect) this.disconnect();
 
         this.disableOldPlayer(true);
-        
+
         this.shutdown.reset();
         this.queue.reset();
 
