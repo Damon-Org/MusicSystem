@@ -1,8 +1,8 @@
 import ServerModule from './structures/modules/ServerModule.js'
 import Constants from './util/Constants.js'
-import MusicSystem from './structures/music/System.js'
 
-export default class Music extends ServerModule {
+// MusicServerModule does inherintly the same as a ServerModule only that it extends the MusicSystem class
+export default class Music extends MusicServerModule {
     /**
      * @param {Main} main
      * @param {Guild} server
@@ -30,8 +30,6 @@ export default class Music extends ServerModule {
                 }
             ]
         });
-
-        Object.assign(this, new MusicSystem(this));
     }
 
     get constants() {

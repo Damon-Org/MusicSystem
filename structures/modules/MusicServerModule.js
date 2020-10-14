@@ -1,4 +1,6 @@
-export default class ServerModule {
+import MusicSystem from '../music/System.js'
+
+export default class MusicServerModule extends MusicSystem {
     /**
      * @param {Main} main The program entrypoint class
      */
