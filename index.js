@@ -1,4 +1,4 @@
-import ServerModule from './structures/modules/ServerModule.js'
+import MusicServerModule from './structures/modules/MusicServerModule.js'
 import Constants from './util/Constants.js'
 
 // MusicServerModule does inherintly the same as a ServerModule only that it extends the MusicSystem class
