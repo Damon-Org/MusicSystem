@@ -644,8 +644,7 @@ export default class MusicSystem {
         if (disconnect) this.disconnect();
 
         this.disableOldPlayer(true);
-
-        this.djManager.reset(true);
+        
         this.shutdown.reset();
         this.queue.reset();
 
