@@ -148,7 +148,7 @@ export default class MusicUtils {
 
         const reactionInterface = this.music.getModule('reactionInterface');
         const reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'add');
-        reactionListener.on('reaction', (emoji, user) => {
+        reactionListener.on('reaction', async (emoji, user) => {
             if (serverMember.user.id != user.id || !voiceChannel) return;
             reactionListener.cleanup();
 
