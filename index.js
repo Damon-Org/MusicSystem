@@ -51,7 +51,7 @@ export default class Music extends MusicServerModule {
             server.music.shutdown.cancel();
         }
 
-        server.music.djManager.join(serverMember);
+        server.dj.join(serverMember);
     }
 
     /**
@@ -68,7 +68,7 @@ export default class Music extends MusicServerModule {
         if (voiceChannel.members.size == 1 && !server.music.shutdown.type()) {
             server.music.shutdown.delay('time', 3e5);
         }
-        server.music.djManager.remove(serverMember);
+        server.dj.remove(serverMember);
 
         if (!voiceChannel.guild.me.voice.channel) {
             server.music.shutdown.instant();
