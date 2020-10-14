@@ -2,10 +2,10 @@ import humanReadableTime from 'humanize-duration'
 
 export default class MusicShutdown {
     /**
-     * @param {MusicSystem} musicSystem
+     * @param {MusicSystem} music
      */
-    constructor(musicSystem) {
-        this.musicSystem = musicSystem;
+    constructor(music) {
+        this.music = music;
     }
 
     cancel() {
@@ -20,7 +20,7 @@ export default class MusicShutdown {
         this._type = type;
 
         if (type == 'time')
-            this.shutdownMsg = this.musicSystem.channel.send(`The queue will be destroyed within ${humanReadableTime(timeout)}, rejoin within that time to resume music playback.`);
+            this.shutdownMsg = this.music.channel.send(`The queue will be destroyed within ${humanReadableTime(timeout)}, rejoin within that time to resume music playback.`);
 
         this._timeout = setTimeout(() => {
             this.instant();
@@ -30,8 +30,7 @@ export default class MusicShutdown {
     instant() {
         this.reset();
 
-        this.musicSystem.disconnect();
-        this.musicSystem.reset();
+        this.music.reset(true);
     }
 
     type() {

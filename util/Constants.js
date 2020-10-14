@@ -1,11 +1,5 @@
 import EqBand from '../structures/equalizer/Band.js'
 
-export const DJMode = {
-    FREEFORALL: 1,
-    MANAGED: 2,
-    ROLE: 3
-};
-
 /**
  * Frequency / Band
  *
@@ -154,6 +148,5 @@ export const EqualizerBands = {
 };
 
 export default {
-    DJMode,
     EqualizerBands
 };

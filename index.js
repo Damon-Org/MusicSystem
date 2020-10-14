@@ -10,7 +10,7 @@ export default class Music extends ServerModule {
     constructor(main, server) {
         super(main, server);
 
-        this.register(MusicSystem, {
+        this.register(Music, {
             name: 'music',
             scope: 'server',
             requires: [
@@ -31,53 +31,7 @@ export default class Music extends ServerModule {
             ]
         });
 
-        this._music = new MusicSystem(this);
-    }
-
-    get constants() {
-        return Constants;
-    }
-
-    /**
-     * @returns {DJManager}
-     */
-    get djManager() {
-        return this._music.djManager;
-    }
-
-    /**
-     * @returns {Shoukaku} The class to interact with Lavalin nodes.
-     */
-    get lava() {
-        return this._m.getModule('lavalink').conn;
-    }
-
-    /**
-     * @returns Returns a lavalink node that is the least loaded.
-     */
-    get node() {
-        return this.lava.getNode();
-    }
-
-    /**
-     * @returns {Queue}
-     */
-    get queue() {
-        return this._music.queue;
-    }
-
-    /**
-     * @returns {ShutdownManager}
-     */
-    get shutdown() {
-        return this._music.shutdown;
-    }
-
-    /**
-     * @returns {MusicUtils}
-     */
-    get util() {
-        return this._music.util;
+        Object.assign(this, new MusicSystem(this));
     }
 
     /**

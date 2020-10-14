@@ -1,22 +1,15 @@
 import { MessageEmbed } from 'discord.js'
-import DJManager from '../dj/Manager.js'
 import MusicQueue from './Queue.js'
 import MusicUtils from '../../util/Music.js'
 import ShutdownManager from '../../util/ShutdownManager.js'
 import SpotifyTrack from '../track/SpotifyTrack.js'
 
 export default class MusicSystem {
-    djManager = new DJManager(this);
     queue = new MusicQueue();
     shutdown = new ShutdownManager(this);
     util = new MusicUtils(this);
 
-    /**
-     * @param {Music} music
-     */
-    constructor(music) {
-        Object.assign(music, this);
-
+    constructor() {
         this.reset();
     }
 
