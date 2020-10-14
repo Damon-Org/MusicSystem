@@ -153,7 +153,7 @@ export default class MusicUtils {
         const emojis = ['✅', '❎'];
 
         const reactionInterface = this.music.getModule('reactionInterface');
-        const reactionListener = reactionListener.createReactionListener(newMsg, emojis, 'add');
+        const reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'add');
         reactionListener.on('reaction', (emoji, user) => {
 
         });
