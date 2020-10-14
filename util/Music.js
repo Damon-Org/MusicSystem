@@ -222,7 +222,7 @@ export default class MusicUtils {
 
         switch (this.checkRequestType(args)) {
             case 0: {
-                data = await this.music.node.rest.resolve(args[0]);
+                data = await this.getModule('lavalink').conn.getNode().rest.resolve(args[0]);
 
                 if (!data) {
                     const richEmbed = new MessageEmbed()
