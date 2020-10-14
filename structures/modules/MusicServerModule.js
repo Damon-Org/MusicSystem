@@ -5,6 +5,8 @@ export default class MusicServerModule extends MusicSystem {
      * @param {Main} main The program entrypoint class
      */
     constructor(main, server = -1) {
+        super();
+
         this._m = main;
 
         this.server = server;
