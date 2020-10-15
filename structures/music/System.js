@@ -117,7 +117,7 @@ export default class MusicSystem {
         this.lastMsg = newMsg;
 
         const reactionInterface = this.getModule('reactionInterface');
-        this.reactionListener = reactionListener.createReactionListener(newMsg, emojis, 'toggle', null, -1);
+        this.reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'toggle', null, -1);
 
         this.reactionListener.on('timeout', () => this.shutdown.instant());
         this.reactionListener.on('reaction', (emoji, user) => this.onMusicPlayerAction(emoji, user));
