@@ -14,31 +14,6 @@ export default class MusicUtils {
     }
 
     /**
-     * @param {GuildMember} requester The person that initiated the action
-     * @param {string} searchFor The string that should be looked up
-     * @param {boolean} exception
-     */
-    addChoice(requester, searchFor, exception) {
-        const choice =
-            new MusicChoice(
-                this.music.getModule('api').youtube,
-                searchFor,
-                exception
-            );
-
-        choice.requester = requester;
-
-        const
-            server = this.music.server,
-            oldChoice = server.localUsers.getProp(requester.user.id, 'choice');
-
-        if (oldChoice && oldChoice.listener) oldChoice.listener.delete();
-
-        server.localUsers.setProp(requester.user.id, 'choice', choice);
-        return choice.genDescription();
-    }
-
-    /**
      * @param {Array<string>}
      */
     checkRequestType(args) {
@@ -67,13 +42,10 @@ export default class MusicUtils {
      * @param {boolean} [exception=false] If the song should be added next up
      */
     async createNewChoiceEmbed(msgObj, searchFor, noticeMsg, exception = false) {
-        const
-            serverId = msgObj.guild.id,
-            requester = msgObj.member,
-            voiceChannel = requester.voice.channel,
-            server = this.music.server;
+        const serverMember = msgObj.member;
+        const voiceChannel = serverMember.voice.channel;
 
-        (await noticeMsg).delete();
+        noticeMsg.then(msg => msg.delete());
 
         if (this.music.queueExists() && !this.music.isDamonInVC(voiceChannel)) {
             const newMsg = await msgObj.reply('you aren\'t in my voice channel! 😣');
@@ -84,7 +56,11 @@ export default class MusicUtils {
             return;
         }
 
-        if (!await this.addChoice(requester, searchFor, exception)) {
+        const choice = new MusicChoice(
+            this.music.getModule('api').youtube,
+            searchFor
+        );
+        if (!await choice.genDescription()) {
             const richEmbed = new MessageEmbed()
                 .setTitle('I could not find the song you requested')
                 .setDescription(`No results returned for ${searchFor}.`)
@@ -95,30 +71,63 @@ export default class MusicUtils {
             return;
         }
 
-        const choice = server.localUsers.getProp(requester.user.id, 'choice');
-
         const richEmbed = new MessageEmbed()
             .setColor('#252422')
             .setDescription(choice.description)
             .setFooter('Choose a song by clicking the matching reaction below');
 
         const newMsg = await msgObj.channel.send(richEmbed);
-        choice.listener = newMsg;
-        choice.voiceChannel = voiceChannel;
+
+        const emojis = ['\u0031\u20E3','\u0032\u20E3','\u0033\u20E3','\u0034\u20E3','\u0035\u20E3', '🚫'];
+
+        const reactionInterface = this.music.getModule('reactionInterface');
+        const reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'add');
+
+        reactionListener.on('timeout', () => {
+            // Cleanup is already called at this point
+            newMsg.edit('Choice Request timed out.');
+        });
+        reactionListener.on('reaction', (emoji, user) => {
+            if (serverMember.user.id !== user.id || !voiceChannel) return;
+            reactionListener.cleanup();
+
+            newMsg.delete();
+
+            const index = emojis.indexOf(emoji);
+
+            if (index > 4) return;
+
+            const videoId = choice.ids[index];
+            if (!videoId) return;
+
+            let data = null;
+            let attempt = 0;
+            do {
+                data = await this.node.rest.resolve(`https://youtu.be/${videoId}`);
+
+                attempt++;
+            } while ((!data || data.tracks.length == 0) && attempt < 3);
+
+            if (!data || data.length == 0) {
+                newMsg.channel.send(`${requester}, failed to queue song, perhaps the song is limited in country or age restricted?`)
+                    .then(msg => msg.delete({timeout: 5e3}));
+
+                return;
+            }
+
+            data = new LavaTrack(data.tracks[0]);
+
+            if (!voiceChannel.members.get(user.id)) {
+                newMsg.channel.send(`${requester}, you've left your original voicechannel, request ignored.`)
+                    .then(msg => msg.delete({timeout: 5e3}));
+
+                return;
+            }
+
+            this.util.handleSongData(data, serverMember, newMsg, voiceChannel, null, exception);
+        });
 
         // const emojis = ['\u0030\u20E3','\u0031\u20E3','\u0032\u20E3','\u0033\u20E3','\u0034\u20E3','\u0035\u20E3', '\u0036\u20E3','\u0037\u20E3','\u0038\u20E3','\u0039\u20E3'];
-        const emojis = ['\u0031\u20E3','\u0032\u20E3','\u0033\u20E3','\u0034\u20E3','\u0035\u20E3', '🚫'];
-        // Custom for loop that interprets discord's trash delay
-        emojis.forEach(async (emoji) => {
-            if (!newMsg.deleted) {
-                await newMsg.react(emoji)
-                .catch(e => {
-                    if (e.message != 'Unknown Message') {
-                        console.log(e.stack);
-                    }
-                });
-            }
-        });
     }
 
     /**
@@ -151,7 +160,7 @@ export default class MusicUtils {
             playlist: data
         });
         reactionListener.on('reaction', async (emoji, user) => {
-            if (serverMember.user.id != user.id || !voiceChannel) return;
+            if (serverMember.user.id !== user.id || !voiceChannel) return;
             reactionListener.cleanup();
 
             const { playlist } = reactionListener.getData();
