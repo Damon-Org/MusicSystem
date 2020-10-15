@@ -101,30 +101,26 @@ export default class MusicSystem {
         }
 
         this.disableOldPlayer(true);
+        if (this.reactionListener) this.reactionListener.cleanup();
 
-        const
-            richEmbed = new MessageEmbed()
+        const richEmbed = new MessageEmbed()
                 .setAuthor(track.author)
                 .setTitle(track.title)
                 .setThumbnail(track.image ? track.image : null)
                 .setColor(this.songState.color)
                 .setDescription(`Requested by: **${track.requester}**`)
-                .setFooter(this.songState.footer),
-            newMsg = await this.channel.send(richEmbed),
-            emojis = ['⏮️', '⏸', '⏭', '🔁'];
+                .setFooter(this.songState.footer);
+        const newMsg = await this.channel.send(richEmbed);
+
+        const emojis = ['⏮️', '⏸', '⏭', '🔁'];
 
         this.lastMsg = newMsg;
 
-        emojis.forEach(async emoji => {
-            if (!newMsg.deleted) {
-                await newMsg.react(emoji)
-                .catch(e => {
-                    if (e.message != 'Unknown Message') {
-                        console.log(e.stack);
-                    }
-                });
-            }
-        });
+        const reactionInterface = this.getModule('reactionInterface');
+        this.reactionListener = reactionListener.createReactionListener(newMsg, emojis, 'toggle', null, -1);
+
+        this.reactionListener.on('timeout', () => this.shutdown.instant());
+        this.reactionListener.on('reaction', (emoji, user) => this.onMusicPlayerAction(emoji, user));
     }
 
     /**
@@ -206,10 +202,8 @@ export default class MusicSystem {
      * @param {Message} msgObj
      * @param {User} user
      */
-    async onMusicPlayerAction(emoji, msgObj, user) {
-        if (!this.lastMsg || this.lastMsg.id != msgObj.id || !this.voiceChannel.members.get(user.id)) {
-            return;
-        }
+    async onMusicPlayerAction(emoji, user) {
+        if (!this.lastMsg || !this.voiceChannel.members.has(user.id)) return;
 
         switch (emoji) {
             case '⏮️': {
@@ -226,7 +220,7 @@ export default class MusicSystem {
             }
             case '🔁': {
                 if (!this.playerRepeatToggle()) {
-                    const newMsg = await msgObj.channel.send('The currently playing song was removed and repeat has been disabled.');
+                    const newMsg = await this.lastMsg.channel.send('The currently playing song was removed and repeat has been disabled.');
 
                     newMsg.delete({timeout: 5000});
                 }
