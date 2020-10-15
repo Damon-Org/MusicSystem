@@ -172,12 +172,12 @@ export default class MusicUtils {
             newMsg.delete();
 
             if (emoji == emojis[0]) {
+                newMsg.channel.send('Successfully added playlist!');
+
                 for (let i = 0; i < playlist.length; i++) {
                     const song = new LavaTrack(playlist[i]);
                     if (!await this.handleSongData(song, serverMember, newMsg, voiceChannel, null, false, false)) break;
                 }
-
-                newMsg.channel.send('Successfully added playlist!');
 
                 return;
             }
