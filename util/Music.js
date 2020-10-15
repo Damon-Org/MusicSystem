@@ -4,6 +4,7 @@ import MusicChoice from '../structures/music/Choice.js'
 
 import LavaTrack from '../structures/track/LavaTrack.js'
 import SpotifyTrack from '../structures/track/SpotifyTrack.js'
+import DeezerTrack from '../structures/track/DeezerTrack.js'
 
 export default class MusicUtils {
     /**
@@ -11,6 +12,31 @@ export default class MusicUtils {
      */
     constructor(music) {
         this.music = music;
+    }
+
+    /**
+     * @param {GuildMember} requester The person that initiated the action
+     * @param {string} searchFor The string that should be looked up
+     * @param {boolean} exception
+     */
+    addChoice(requester, searchFor, exception) {
+        const choice =
+            new MusicChoice(
+                this.music.getModule('api').youtube,
+                searchFor,
+                exception
+            );
+
+        choice.requester = requester;
+
+        const
+            server = this.music.server,
+            oldChoice = server.localUsers.getProp(requester.user.id, 'choice');
+
+        if (oldChoice && oldChoice.listener) oldChoice.listener.delete();
+
+        server.localUsers.setProp(requester.user.id, 'choice', choice);
+        return choice.genDescription();
     }
 
     /**
@@ -26,6 +52,7 @@ export default class MusicUtils {
                 const url = new URL(args[0]);
 
                 if (url.hostname == 'open.spotify.com') return 1;
+                if (url.hostname == 'deezer.page.link' || 'www.deezer.com' || 'deezer.com') return 2;
 
                 return 0;
             } catch (e) {
@@ -42,10 +69,13 @@ export default class MusicUtils {
      * @param {boolean} [exception=false] If the song should be added next up
      */
     async createNewChoiceEmbed(msgObj, searchFor, noticeMsg, exception = false) {
-        const serverMember = msgObj.member;
-        const voiceChannel = serverMember.voice.channel;
+        const
+            serverId = msgObj.guild.id,
+            requester = msgObj.member,
+            voiceChannel = requester.voice.channel,
+            server = this.music.server;
 
-        noticeMsg.then(msg => msg.delete());
+        (await noticeMsg).delete();
 
         if (this.music.queueExists() && !this.music.isDamonInVC(voiceChannel)) {
             const newMsg = await msgObj.reply('you aren\'t in my voice channel! 😣');
@@ -56,11 +86,7 @@ export default class MusicUtils {
             return;
         }
 
-        const choice = new MusicChoice(
-            this.music.getModule('api').youtube,
-            searchFor
-        );
-        if (!await choice.genDescription()) {
+        if (!await this.addChoice(requester, searchFor, exception)) {
             const richEmbed = new MessageEmbed()
                 .setTitle('I could not find the song you requested')
                 .setDescription(`No results returned for ${searchFor}.`)
@@ -71,63 +97,30 @@ export default class MusicUtils {
             return;
         }
 
+        const choice = server.localUsers.getProp(requester.user.id, 'choice');
+
         const richEmbed = new MessageEmbed()
             .setColor('#252422')
             .setDescription(choice.description)
             .setFooter('Choose a song by clicking the matching reaction below');
 
         const newMsg = await msgObj.channel.send(richEmbed);
-
-        const emojis = ['\u0031\u20E3','\u0032\u20E3','\u0033\u20E3','\u0034\u20E3','\u0035\u20E3', '🚫'];
-
-        const reactionInterface = this.music.getModule('reactionInterface');
-        const reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'add');
-
-        reactionListener.on('timeout', () => {
-            // Cleanup is already called at this point
-            newMsg.edit('Choice Request timed out.');
-        });
-        reactionListener.on('reaction', async (emoji, user) => {
-            if (serverMember.user.id !== user.id || !voiceChannel) return;
-            reactionListener.cleanup();
-
-            newMsg.delete();
-
-            const index = emojis.indexOf(emoji);
-
-            if (index > 4) return;
-
-            const videoId = choice.ids[index];
-            if (!videoId) return;
-
-            let data = null;
-            let attempt = 0;
-            do {
-                data = await this.music.node.rest.resolve(`https://youtu.be/${videoId}`);
-
-                attempt++;
-            } while ((!data || data.tracks.length == 0) && attempt < 3);
-
-            if (!data || data.length == 0) {
-                newMsg.channel.send(`${requester}, failed to queue song, perhaps the song is limited in country or age restricted?`)
-                    .then(msg => msg.delete({timeout: 5e3}));
-
-                return;
-            }
-
-            data = new LavaTrack(data.tracks[0]);
-
-            if (!voiceChannel.members.has(user.id)) {
-                newMsg.channel.send(`${requester}, you've left your original voicechannel, request ignored.`)
-                    .then(msg => msg.delete({timeout: 5e3}));
-
-                return;
-            }
-
-            this.handleSongData(data, serverMember, newMsg, voiceChannel, null, exception);
-        });
+        choice.listener = newMsg;
+        choice.voiceChannel = voiceChannel;
 
         // const emojis = ['\u0030\u20E3','\u0031\u20E3','\u0032\u20E3','\u0033\u20E3','\u0034\u20E3','\u0035\u20E3', '\u0036\u20E3','\u0037\u20E3','\u0038\u20E3','\u0039\u20E3'];
+        const emojis = ['\u0031\u20E3','\u0032\u20E3','\u0033\u20E3','\u0034\u20E3','\u0035\u20E3', '🚫'];
+        // Custom for loop that interprets discord's trash delay
+        emojis.forEach(async (emoji) => {
+            if (!newMsg.deleted) {
+                await newMsg.react(emoji)
+                .catch(e => {
+                    if (e.message != 'Unknown Message') {
+                        console.log(e.stack);
+                    }
+                });
+            }
+        });
     }
 
     /**
@@ -159,12 +152,8 @@ export default class MusicUtils {
         const reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'add', {
             playlist: data
         });
-
-        reactionListener.on('timeout', () => {
-            newMsg.delete();
-        });
         reactionListener.on('reaction', async (emoji, user) => {
-            if (serverMember.user.id !== user.id || !voiceChannel) return;
+            if (serverMember.user.id != user.id || !voiceChannel) return;
             reactionListener.cleanup();
 
             const { playlist } = reactionListener.getData();
@@ -172,12 +161,12 @@ export default class MusicUtils {
             newMsg.delete();
 
             if (emoji == emojis[0]) {
-                newMsg.channel.send('Successfully added playlist!');
-
                 for (let i = 0; i < playlist.length; i++) {
                     const song = new LavaTrack(playlist[i]);
                     if (!await this.handleSongData(song, serverMember, newMsg, voiceChannel, null, false, false)) break;
                 }
+
+                newMsg.channel.send('Successfully added playlist!');
 
                 return;
             }
@@ -245,6 +234,7 @@ export default class MusicUtils {
 
             return false;
         }
+
         await musicSystem.createQueue(track, serverMember, msgObj.channel);
 
         if (await musicSystem.startQueue(voiceChannel) && allowSpam) {
@@ -339,6 +329,24 @@ export default class MusicUtils {
                         .then(msg => msg.delete({timeout: 5e3}));
 
                     return true;
+                }
+
+                break;
+            }
+            case 2: {
+                let deezer = new URL(args[0]).pathname;
+
+                if (deezer.includes('/track/')) {
+                    const track = (await this.music._m.getModule('api').deezer.getTrack(deezer.split('/track/')[1]));
+                    data = new DeezerTrack(track, this.music._m);
+                } else { // User gave us a randomly generated sharable link.
+                    const trackLink = await this.music._m.getModule('api').deezer.fetchSharableLink(deezer);
+
+                    deezer = new URL(trackLink).pathname;
+
+                    const track = (await this.music._m.getModule('api').deezer.getTrack(deezer.split('/track/')[1]));
+                
+                    data = new DeezerTrack(track, this.music._m);
                 }
 
                 break;
