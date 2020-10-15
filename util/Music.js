@@ -147,12 +147,21 @@ export default class MusicUtils {
         const emojis = ['✅', '❎'];
 
         const reactionInterface = this.music.getModule('reactionInterface');
-        const reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'add');
+        const reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'add', {
+            data,
+            exception,
+            msgObj: newMsg,
+            origVideoId,
+            serverMember,
+            voiceChannel
+        });
         reactionListener.on('reaction', async (emoji, user) => {
             if (serverMember.user.id != user.id || !voiceChannel) return;
             reactionListener.cleanup();
 
-            newMsg.delete();
+            const { data, exception, msgObj, origVideoId, serverMember, voiceChannel } = reactionListener.getData();
+
+            msgObj.delete();
 
             if (emoji == emojis[0]) {
                 for (let i = 0; i < data.length; i++) {
@@ -160,7 +169,7 @@ export default class MusicUtils {
                     if (!await this.handleSongData(song, serverMember, msgObj, voiceChannel, null, false, false)) break;
                 }
 
-                newMsg.channel.send('Successfully added playlist!');
+                msgObj.channel.send('Successfully added playlist!');
 
                 return;
             }
@@ -171,7 +180,7 @@ export default class MusicUtils {
                     .setDescription(`Playlist link did not contain a song to select.`)
                     .setColor('#ed4337');
 
-                newMsg.channel.send(richEmbed);
+                msgObj.channel.send(richEmbed);
 
                 return;
             }
@@ -183,7 +192,7 @@ export default class MusicUtils {
                     .setDescription(`I could not find the track you requested or access to this track is limited.\nPlease try again with something other than what you tried to search for.`)
                     .setColor('#ed4337');
 
-                newMsg.channel.send(richEmbed);
+                msgObj.channel.send(richEmbed);
 
                 return;
             }
