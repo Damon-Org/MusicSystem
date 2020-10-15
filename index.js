@@ -45,7 +45,7 @@ export default class Music extends MusicServerModule {
     _voiceJoin(guild, serverMember, voiceChannel) {
         const server = this.servers.get(guild, false);
 
-        if (!server.music.queueExists()) return;
+        if (!server || !server.music.queueExists()) return;
 
         if (server.music.shutdown.type() == 'time' && voiceChannel.members.size > 1) {
             server.music.shutdown.cancel();
@@ -63,7 +63,7 @@ export default class Music extends MusicServerModule {
     _voiceLeave(guild, serverMember, voiceChannel) {
         const server = this.servers.get(guild, false);
 
-        if (!server.music.queueExists() || !server.music.isDamonInVC(voiceChannel)) return;
+        if (!server || !server.music.queueExists() || !server.music.isDamonInVC(voiceChannel)) return;
 
         if (voiceChannel.members.size == 1 && !server.music.shutdown.type()) {
             server.music.shutdown.delay('time', 3e5);
