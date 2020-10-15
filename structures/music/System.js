@@ -401,7 +401,7 @@ export default class MusicSystem {
                     return false;
                 }
 
-                if (!voiceChannel.joinable) {
+                if (!voiceChannel.joinable && !voiceChannel.guild.me.hasPermission('ADMINISTRATOR')) {
                     const richEmbed = new MessageEmbed()
                         .setTitle('Insufficient permissions')
                         .setColor('#ff0033')
