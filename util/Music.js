@@ -103,7 +103,7 @@ export default class MusicUtils {
             let data = null;
             let attempt = 0;
             do {
-                data = await this.node.rest.resolve(`https://youtu.be/${videoId}`);
+                data = await this.music.node.rest.resolve(`https://youtu.be/${videoId}`);
 
                 attempt++;
             } while ((!data || data.tracks.length == 0) && attempt < 3);
@@ -117,14 +117,14 @@ export default class MusicUtils {
 
             data = new LavaTrack(data.tracks[0]);
 
-            if (!voiceChannel.members.get(user.id)) {
+            if (!voiceChannel.members.has(user.id)) {
                 newMsg.channel.send(`${requester}, you've left your original voicechannel, request ignored.`)
                     .then(msg => msg.delete({timeout: 5e3}));
 
                 return;
             }
 
-            this.util.handleSongData(data, serverMember, newMsg, voiceChannel, null, exception);
+            this.handleSongData(data, serverMember, newMsg, voiceChannel, null, exception);
         });
 
         // const emojis = ['\u0030\u20E3','\u0031\u20E3','\u0032\u20E3','\u0033\u20E3','\u0034\u20E3','\u0035\u20E3', '\u0036\u20E3','\u0037\u20E3','\u0038\u20E3','\u0039\u20E3'];
@@ -158,6 +158,10 @@ export default class MusicUtils {
         const reactionInterface = this.music.getModule('reactionInterface');
         const reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'add', {
             playlist: data
+        });
+
+        reactionListener.on('timeout', () => {
+            newMsg.delete();
         });
         reactionListener.on('reaction', async (emoji, user) => {
             if (serverMember.user.id !== user.id || !voiceChannel) return;
