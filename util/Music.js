@@ -87,7 +87,7 @@ export default class MusicUtils {
             // Cleanup is already called at this point
             newMsg.edit('Choice Request timed out.');
         });
-        reactionListener.on('reaction', (emoji, user) => {
+        reactionListener.on('reaction', async (emoji, user) => {
             if (serverMember.user.id !== user.id || !voiceChannel) return;
             reactionListener.cleanup();
 
