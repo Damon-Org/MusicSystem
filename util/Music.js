@@ -148,28 +148,23 @@ export default class MusicUtils {
 
         const reactionInterface = this.music.getModule('reactionInterface');
         const reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'add', {
-            data,
-            exception,
-            msgObj: newMsg,
-            origVideoId,
-            serverMember,
-            voiceChannel
+            playlist: data
         });
         reactionListener.on('reaction', async (emoji, user) => {
             if (serverMember.user.id != user.id || !voiceChannel) return;
             reactionListener.cleanup();
 
-            const { data, exception, msgObj, origVideoId, serverMember, voiceChannel } = reactionListener.getData();
+            const { playlist } = reactionListener.getData();
 
-            msgObj.delete();
+            newMsg.delete();
 
             if (emoji == emojis[0]) {
-                for (let i = 0; i < data.length; i++) {
-                    const song = new LavaTrack(data[i]);
-                    if (!await this.handleSongData(song, serverMember, msgObj, voiceChannel, null, false, false)) break;
+                for (let i = 0; i < playlist.length; i++) {
+                    const song = new LavaTrack(playlist[i]);
+                    if (!await this.handleSongData(song, serverMember, newMsg, voiceChannel, null, false, false)) break;
                 }
 
-                msgObj.channel.send('Successfully added playlist!');
+                newMsg.channel.send('Successfully added playlist!');
 
                 return;
             }
@@ -180,7 +175,7 @@ export default class MusicUtils {
                     .setDescription(`Playlist link did not contain a song to select.`)
                     .setColor('#ed4337');
 
-                msgObj.channel.send(richEmbed);
+                newMsg.channel.send(richEmbed);
 
                 return;
             }
@@ -192,13 +187,13 @@ export default class MusicUtils {
                     .setDescription(`I could not find the track you requested or access to this track is limited.\nPlease try again with something other than what you tried to search for.`)
                     .setColor('#ed4337');
 
-                msgObj.channel.send(richEmbed);
+                newMsg.channel.send(richEmbed);
 
                 return;
             }
 
             data = new LavaTrack(data);
-            this.handleSongData(data, serverMember, msgObj, voiceChannel, null, exception);
+            this.handleSongData(data, serverMember, newMsg, voiceChannel, null, exception);
         });
     }
 
