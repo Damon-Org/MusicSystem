@@ -4,6 +4,7 @@ import MusicQueue from './Queue.js'
 import MusicUtils from '../../util/Music.js'
 import ShutdownManager from '../../util/ShutdownManager.js'
 import SpotifyTrack from '../track/SpotifyTrack.js'
+import DeezerTrack from '../track/DeezerTrack.js'
 
 export default class MusicSystem extends MusicServerModule {
     queue = new MusicQueue();
@@ -64,7 +65,7 @@ export default class MusicSystem extends MusicServerModule {
             if (track == null) return;
         }
 
-        if (track instanceof SpotifyTrack && !track.cached)
+        if ((track instanceof SpotifyTrack || track instanceof DeezerTrack) && !track.cached)
             await track.getYouTubeEquiv();
     }
 
@@ -108,26 +109,30 @@ export default class MusicSystem extends MusicServerModule {
         }
 
         this.disableOldPlayer(true);
-        if (this.reactionListener) this.reactionListener.cleanup();
 
-        const richEmbed = new MessageEmbed()
+        const
+            richEmbed = new MessageEmbed()
                 .setAuthor(track.author)
                 .setTitle(track.title)
                 .setThumbnail(track.image ? track.image : null)
                 .setColor(this.songState.color)
                 .setDescription(`Requested by: **${track.requester}**`)
-                .setFooter(this.songState.footer);
-        const newMsg = await this.channel.send(richEmbed);
-
-        const emojis = ['⏮️', '⏸', '⏭', '🔁'];
+                .setFooter(this.songState.footer),
+            newMsg = await this.channel.send(richEmbed),
+            emojis = ['⏮️', '⏸', '⏭', '🔁'];
 
         this.lastMsg = newMsg;
 
-        const reactionInterface = this.getModule('reactionInterface');
-        this.reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'toggle', null, -1);
-
-        this.reactionListener.on('timeout', () => this.shutdown.instant());
-        this.reactionListener.on('reaction', (emoji, user) => this.onMusicPlayerAction(emoji, user));
+        emojis.forEach(async emoji => {
+            if (!newMsg.deleted) {
+                await newMsg.react(emoji)
+                .catch(e => {
+                    if (e.message != 'Unknown Message') {
+                        console.log(e.stack);
+                    }
+                });
+            }
+        });
     }
 
     /**
@@ -199,6 +204,136 @@ export default class MusicSystem extends MusicServerModule {
         return voiceChannel.members.has(this._m.user.id);
     }
 
+    /**
+     * Handles a reaction on a choice embed.
+     * @param {number} index The index of the song in the Choice instance
+     * @param {Message} msgObj
+     * @param {User} user
+     */
+    async onChoiceEmbedAction(index, msgObj, user) {
+        const choice = this.server.localUsers.getProp(user.id, 'choice');
+        if (!choice || choice.listener.id != msgObj.id || choice.handled) {
+            return;
+        }
+
+        if (index > 4) {
+            msgObj.delete();
+
+            return;
+        }
+
+        choice.handled = true;
+
+        const
+            requester = choice.requester,
+            videoId = choice.ids[index],
+            voiceChannel = choice.voiceChannel;
+
+        if (!videoId) {
+            return;
+        }
+
+        let
+            data = null,
+            attempt = 0;
+
+        do {
+            data = await this.node.rest.resolve(`https://youtu.be/${videoId}`);
+
+            attempt++;
+        } while ((!data || data.tracks.length == 0) && attempt < 3);
+
+        if (!data || data.length == 0) {
+            msgObj.channel.send(`${requester}, failed to queue song, perhaps the song is limited in country or age restricted?`)
+                .then(msg => msg.delete({timeout: 5e3}));
+
+            return;
+        }
+
+        data = new LavaTrack(data.tracks[0]);
+
+        if (!voiceChannel.members.get(user.id)) {
+            msgObj.channel.send(`${requester}, you've left your original voicechannel, request ignored.`)
+                .then(msg => msg.delete({timeout: 5e3}));
+
+            msgObj.delete();
+
+            return;
+        }
+
+        this.util.handleSongData(data, requester, msgObj, voiceChannel, null, choice.shouldPlayNext);
+
+        msgObj.delete();
+        this.server.localUsers.removeProp(user.id, 'choice');
+    }
+
+    /**
+     * @param {number} yesnoOption
+     * @param {Message} msgObj
+     * @param {User} user
+     */
+    async onPlaylistAction(yesnoOption, msgObj, user) {
+        const playlistObj = this.server.localUsers.getProp(user.id, 'playlist');
+
+        if (!playlistObj) return;
+        if (playlistObj.msgObj.id != msgObj.id) return;
+
+        msgObj.delete();
+
+        const
+            exception = playlistObj.exception,
+            serverMember = playlistObj.requester,
+            textchannel = msgObj.channel,
+            voiceChannel = playlistObj.voicechannel;
+
+        if (!voiceChannel.members.get(user.id)) {
+            const newMsg = await msgObj.channel.send(`${serverMember}, you've left your original voicechannel, request ignored.`);
+
+            newMsg.delete({timeout: 5000});
+
+            return;
+        }
+
+        if (yesnoOption) {
+            if (!playlistObj.videoId) {
+                const richEmbed = new MessageEmbed()
+                    .setTitle('Playlist Exception.')
+                    .setDescription(`Playlist link did not contain a song to select.`)
+                    .setColor('#ed4337');
+
+                msgObj.channel.send(richEmbed);
+
+                return;
+            }
+
+            const data = await this.node.rest.resolve(`https://youtube.com/watch?v=${playlistObj.videoId}`);
+            if (!data) {
+                const richEmbed = new MessageEmbed()
+                    .setTitle('No results returned.')
+                    .setDescription(`I could not find the track you requested or access to this track is limited.\nPlease try again with something other than what you tried to search for.`)
+                    .setColor('#ed4337');
+
+                msgObj.channel.send(richEmbed);
+
+                return;
+            }
+
+            data = new LavaTrack(data);
+
+            this.util.handleSongData(data, serverMember, msgObj, voiceChannel, null, exception);
+
+            return;
+        }
+
+
+        for (let i = 0; i < playlistObj.playlist.length; i++) {
+            const song = new LavaTrack(playlistObj.playlist[i]);
+            if (!await this.util.handleSongData(song, serverMember, msgObj, voiceChannel, null, false, false)) break;
+        }
+
+        msgObj.channel.send('Successfully added playlist!');
+    }
+
     nodeError(err) {
         this.shutdown.instant();
     }
@@ -209,8 +344,10 @@ export default class MusicSystem extends MusicServerModule {
      * @param {Message} msgObj
      * @param {User} user
      */
-    async onMusicPlayerAction(emoji, user) {
-        if (!this.lastMsg || !this.voiceChannel.members.has(user.id)) return;
+    async onMusicPlayerAction(emoji, msgObj, user) {
+        if (!this.lastMsg || this.lastMsg.id != msgObj.id || !this.voiceChannel.members.get(user.id)) {
+            return;
+        }
 
         switch (emoji) {
             case '⏮️': {
@@ -227,7 +364,7 @@ export default class MusicSystem extends MusicServerModule {
             }
             case '🔁': {
                 if (!this.playerRepeatToggle()) {
-                    const newMsg = await this.lastMsg.channel.send('The currently playing song was removed and repeat has been disabled.');
+                    const newMsg = await msgObj.channel.send('The currently playing song was removed and repeat has been disabled.');
 
                     newMsg.delete({timeout: 5000});
                 }
@@ -402,7 +539,7 @@ export default class MusicSystem extends MusicServerModule {
                     return false;
                 }
 
-                if (!voiceChannel.joinable && !voiceChannel.guild.me.hasPermission('ADMINISTRATOR')) {
+                if (!voiceChannel.joinable) {
                     const richEmbed = new MessageEmbed()
                         .setTitle('Insufficient permissions')
                         .setColor('#ff0033')
