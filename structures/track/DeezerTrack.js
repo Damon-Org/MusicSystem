@@ -7,7 +7,7 @@ export default class DeezerTrack {
 
         Object.assign(this, {
             artists: data.artist.name,
-            cover: data.album.cover_medium,
+            cover: data.cover_medium ?? data.album?.cover_medium,
             name: data.title
         });
 
