@@ -433,11 +433,15 @@ export default class MusicSystem extends MusicServerModule {
 
         await this.cacheSongIfNeeded(currentSong);
 
-        if (!await this.player.playTrack(currentSong.track, { noReplace: false })) {
-            this._m.log.warn('MUSIC_SYSTEM', 'Failed to playTrack, the instance might be broken:', currentSong.track ?? currentSong);
+        try {
+            if (!await this.player.playTrack(currentSong.track, { noReplace: false })) {
+                this.log.warn('MUSIC', 'Failed to playTrack, the instance might be broken:', currentSong.track ?? currentSong);
 
-            this.playNext();
+                this.playNext();
 
+                return false;
+            }
+        } catch (e) {
             return false;
         }
         await this.player.setVolume(this.volume);
@@ -447,7 +451,7 @@ export default class MusicSystem extends MusicServerModule {
         this.cacheSongIfNeeded();
 
         //this.player.on('closed', () => this.soundEnd(end));
-        //this.player.on('nodeDisconnect', endFunction);
+        this.player.on('nodeDisconnect', () => this.shutdown.instant());
 
         return true;
     }
