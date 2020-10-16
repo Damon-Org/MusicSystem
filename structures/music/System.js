@@ -1,4 +1,4 @@
-this.log.info('MUSICimport MusicServerModule from '../modules/MusicServerModule.js'
+import MusicServerModule from '../modules/MusicServerModule.js'
 import { MessageEmbed } from 'discord.js'
 import MusicQueue from './Queue.js'
 import MusicUtils from '../../util/Music.js'
@@ -451,7 +451,7 @@ export default class MusicSystem extends MusicServerModule {
         this.cacheSongIfNeeded();
 
         //this.player.on('closed', () => this.soundEnd(end));
-        this.player.on('nodeDisconnect', () => this.shutdown.instant());
+        //this.player.on('nodeDisconnect', () => this.shutdown.instant());
 
         return true;
     }
