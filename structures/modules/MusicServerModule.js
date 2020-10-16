@@ -1,12 +1,9 @@
-import MusicSystem from '../music/System.js'
-
-export default class MusicServerModule extends MusicSystem {
+export default class MusicServerModule {
     /**
      * @param {Main} main The program entrypoint class
+     * @param {Server} [server=-1]
      */
     constructor(main, server = -1) {
-        super();
-
         this._m = main;
 
         this.server = server;

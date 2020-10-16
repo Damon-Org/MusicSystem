@@ -1,15 +1,22 @@
+this.log.info('MUSICimport MusicServerModule from '../modules/MusicServerModule.js'
 import { MessageEmbed } from 'discord.js'
 import MusicQueue from './Queue.js'
 import MusicUtils from '../../util/Music.js'
 import ShutdownManager from '../../util/ShutdownManager.js'
 import SpotifyTrack from '../track/SpotifyTrack.js'
 
-export default class MusicSystem {
+export default class MusicSystem extends MusicServerModule {
     queue = new MusicQueue();
     shutdown = new ShutdownManager(this);
     util = new MusicUtils(this);
 
-    constructor() {
+    /**
+     * @param {Main} main
+     * @param {Server} server
+     */
+    constructor(main, server) {
+        super(main, server);
+
         this.reset();
     }
 
@@ -519,6 +526,8 @@ export default class MusicSystem {
      * @param {boolean} [disconnect=true] If the player should be disconnected upon reset.
      */
     reset(disconnect = true) {
+        this.log.info('MUSIC', `Resetting system for guild "${this.server.id}"`);
+
         if (disconnect) this.disconnect();
 
         this.disableOldPlayer(true);
@@ -663,7 +672,7 @@ export default class MusicSystem {
 
         const currentSong = this.queue.active();
 
-        this._m.log.info('MUSIC_SYSTEM', `Finished track: ${currentSong ? currentSong.title : '{ REMOVED SONG }'}`);
+        this.log.info('MUSIC', `Finished track: ${currentSong ? currentSong.title : '{ REMOVED SONG }'}`);
 
         this.playNext();
     }
@@ -673,7 +682,7 @@ export default class MusicSystem {
 
         this.soundActive = true;
 
-        this._m.log.info('MUSIC_SYSTEM', 'Started track: ' + currentSong ? currentSong.title : '{ REMOVED SONG }');
+        this.log.info('MUSIC', 'Started track: ' + currentSong ? currentSong.title : '{ REMOVED SONG }');
 
         if (this.end.type == 'TrackStuckEvent') {
             clearTimeout(this.trackStuckTimeout);

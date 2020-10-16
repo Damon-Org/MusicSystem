@@ -1,11 +1,11 @@
-import MusicServerModule from './structures/modules/MusicServerModule.js'
+import MusicSystem from './structures/music/System.js'
 import Constants from './util/Constants.js'
 
 // MusicServerModule does inherintly the same as a ServerModule only that it extends the MusicSystem class
-export default class Music extends MusicServerModule {
+export default class Music extends MusicSystem {
     /**
      * @param {Main} main
-     * @param {Guild} server
+     * @param {Server} server
      */
     constructor(main, server) {
         super(main, server);
