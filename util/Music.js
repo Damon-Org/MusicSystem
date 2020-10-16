@@ -335,18 +335,58 @@ export default class MusicUtils {
             }
             case 2: {
                 let deezer = new URL(args[0]).pathname;
+                let isPlaylistOrAlbum = deezer.includes('/playlist') || deezer.includes('/album');
 
-                if (deezer.includes('/track/')) {
-                    const track = (await this.music._m.getModule('api').deezer.getTrack(deezer.split('/track/')[1]));
-                    data = new DeezerTrack(track, this.music._m);
-                } else { // User gave us a randomly generated sharable link.
+                // the link is a shortened version without identifiers for track, album or playlist
+                if (!deezer.includes('/playlist') && !deezer.includes('/album/') && !deezer.includes('/track/')) {
                     const trackLink = await this.music._m.getModule('api').deezer.fetchSharableLink(deezer);
 
                     deezer = new URL(trackLink).pathname;
 
-                    const track = (await this.music._m.getModule('api').deezer.getTrack(deezer.split('/track/')[1]));
+                    // if its a regular track we just add it and call it a day
+                    if(!deezer.includes('/playlist/') && !deezer.includes('/album/')) {
+                        const track = (await this.music._m.getModule('api').deezer.getTrack(deezer.split('/track/')[1]));
                 
+                        data = new DeezerTrack(track, this.music._m);
+
+                        break;
+                    }
+
+                    // link was not a track, but a playlist or an album
+                    isPlaylistOrAlbum = true;
+                } 
+                
+                if (isPlaylistOrAlbum) {
+                    const
+                        isPlaylist = deezer.includes('/playlist/'),
+                        playlist =
+                            isPlaylist
+                            ? (await this.music._m.getModule('api').deezer.getPlaylist(deezer.split('/playlist/')[1]))
+                            : (await this.music._m.getModule('api').deezer.getAlbum(deezer.split('/album/')[1]));
+
+                    noticeMsg.then(msg => msg.delete());
+                    msgObj.channel.send(`I added the ${isPlaylist ? 'playlist' : 'album'} **${playlist.title}** from Deezer, with **${playlist.tracks.data.length}** tracks!`);
+
+                    for (const item of playlist.tracks.data) {
+                        const deezerTrack =
+                            new DeezerTrack(
+                                item,
+                                this.music._m
+                            );
+
+                        if (!await this.handleSongData(deezerTrack, requester, msgObj, voiceChannel, null, false, false)) break;
+                    }
+
+                    return true;
+                }
+                else if (deezer.includes('/track/')) {
+                    const track = (await this.music._m.getModule('api').deezer.getTrack(deezer.split('/track/')[1]));
                     data = new DeezerTrack(track, this.music._m);
+                } else {
+                    msgObj.channel.send('I have no idea what to do with that deezer link? <:thinking_hard:560389998806040586>')
+                        .then(msg => msg.delete({timeout: 5e3}));
+
+                    return true;
                 }
 
                 break;
