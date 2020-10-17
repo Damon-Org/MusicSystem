@@ -264,150 +264,24 @@ export default class MusicUtils {
      * @param {boolean} [exception=false]
      */
     async handleRequest(args, msgObj, requester, voiceChannel, noticeMsg, exception = false) {
-        let data = null;
+        const trackResolver = this.music.modules.trackResolver;
 
-        switch (this.checkRequestType(args)) {
-            case 0: {
-                data = await this.music.node.rest.resolve(args[0]);
+        if (!trackResolver.isValidResolvable(args)) {
+            this.createNewChoiceEmbed(msgObj, args.join(' '), noticeMsg, exception);
 
-                if (!data) {
-                    const richEmbed = new MessageEmbed()
-                        .setTitle('I could not find the track you requested')
-                        .setDescription(`No results returned for ${args.join(' ')}.`)
-                        .setColor('#ed4337');
+            return true;
+        }
 
-                    msgObj.channel.send(richEmbed);
+        const data = await trackResolver.resolve(args[0]);
 
-                    return true;
-                }
+        if (data instanceof Array) {
+            noticeMsg.then(msg => msg.delete());
 
-                if (data.type === 'PLAYLIST') {
-                    if (data.tracks.length > 0) {
-                        const orig = (new URL(args[0])).searchParams.get('v');
-
-                        this.createPlaylistFoundEmbed(orig, data.tracks, msgObj, noticeMsg, exception);
-
-                        return true;
-                    }
-
-                    const richEmbed = new MessageEmbed()
-                        .setTitle('Playlist Error')
-                        .setDescription(`A playlist was found but did not contain any songs.`)
-                        .setColor('#ed4337');
-
-                    msgObj.channel.send(richEmbed);
-
-                    return true;
-                }
-
-                data = new LavaTrack(data.tracks[0]);
-
-                break;
+            for (const item of data) {
+                if (!await this.handleSongData(item, requester, msgObj, voiceChannel, null, false, false)) break;
             }
-            case 1: {
-                const spotify = new URL(args[0]).pathname;
 
-                if (spotify.includes('/playlist/') || spotify.includes('/album/')) {
-                    const
-                        isPlaylist = spotify.includes('/playlist/'),
-                        playlist =
-                            isPlaylist
-                            ? (await this.music._m.modules.api.spotify.getPlaylist(spotify.split('/playlist/')[1])).body
-                            : (await this.music._m.modules.api.spotify.getAlbum(spotify.split('/album/')[1])).body;
-
-                    noticeMsg.then(msg => msg.delete());
-                    msgObj.channel.send(`I added the ${isPlaylist ? 'playlist' : 'album'} **${playlist.name}** with **${playlist.tracks.items.length}** tracks!`);
-
-                    for (const item of playlist.tracks.items) {
-                        const spotifyTrack =
-                            new SpotifyTrack(
-                                isPlaylist ? item.track : item,
-                                this.music._m,
-                                !isPlaylist ? playlist.images[0].url : null
-                            );
-
-                        if (!await this.handleSongData(spotifyTrack, requester, msgObj, voiceChannel, null, false, false)) break;
-                    }
-
-                    return true;
-                }
-                else if (spotify.includes('/track/')) {
-                    const track = (await this.music._m.modules.api.spotify.getTrack(spotify.split('/track/')[1])).body;
-
-                    data = new SpotifyTrack(track, this.music._m);
-                }
-                else {
-                    msgObj.channel.send('I have no idea what to do with that spotify link? <:thinking_hard:560389998806040586>')
-                        .then(msg => msg.delete({timeout: 5e3}));
-
-                    return true;
-                }
-
-                break;
-            }
-            case 2: {
-                let deezer = new URL(args[0]).pathname;
-                let isPlaylistOrAlbum = deezer.includes('/playlist') || deezer.includes('/album');
-
-                // the link is a shortened version without identifiers for track, album or playlist
-                if (!deezer.includes('/playlist') && !deezer.includes('/album/') && !deezer.includes('/track/')) {
-                    const trackLink = await this.music._m.modules.api.deezer.fetchSharableLink(deezer);
-
-                    deezer = new URL(trackLink).pathname;
-
-                    // if its a regular track we just add it and call it a day
-                    if(!deezer.includes('/playlist/') && !deezer.includes('/album/')) {
-                        const track = (await this.music._m.modules.api.deezer.getTrack(deezer.split('/track/')[1]));
-
-                        data = new DeezerTrack(track, this.music._m);
-
-                        break;
-                    }
-
-                    // link was not a track, but a playlist or an album
-                    isPlaylistOrAlbum = true;
-                }
-
-                if (isPlaylistOrAlbum) {
-                    const
-                        isPlaylist = deezer.includes('/playlist/'),
-                        playlist =
-                            isPlaylist
-                            ? (await this.music._m.modules.api.deezer.getPlaylist(deezer.split('/playlist/')[1]))
-                            : (await this.music._m.modules.api.deezer.getAlbum(deezer.split('/album/')[1]));
-
-                    noticeMsg.then(msg => msg.delete());
-                    msgObj.channel.send(`I added the ${isPlaylist ? 'playlist' : 'album'} **${playlist.title}** from Deezer, with **${playlist.tracks.data.length}** tracks!`);
-
-                    for (const item of playlist.tracks.data) {
-                        const deezerTrack =
-                            new DeezerTrack(
-                                item,
-                                this.music._m
-                            );
-
-                        if (!await this.handleSongData(deezerTrack, requester, msgObj, voiceChannel, null, false, false)) break;
-                    }
-
-                    return true;
-                }
-                else if (deezer.includes('/track/')) {
-                    const track = (await this.music._m.modules.api.deezer.getTrack(deezer.split('/track/')[1]));
-                    data = new DeezerTrack(track, this.music._m);
-                } else {
-                    msgObj.channel.send('I have no idea what to do with that deezer link? <:thinking_hard:560389998806040586>')
-                        .then(msg => msg.delete({timeout: 5e3}));
-
-                    return true;
-                }
-
-                break;
-            }
-            default: {
-                this.createNewChoiceEmbed(msgObj, args.join(' '), noticeMsg, exception);
-
-                return true;
-            }
+            return true;
         }
 
         return this.handleSongData(data, requester, msgObj, voiceChannel, noticeMsg, exception);

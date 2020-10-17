@@ -3,8 +3,6 @@ import { MessageEmbed } from 'discord.js'
 import MusicQueue from './Queue.js'
 import MusicUtils from '../../util/Music.js'
 import ShutdownManager from '../../util/ShutdownManager.js'
-import DeezerTrack from '../track/DeezerTrack.js'
-import SpotifyTrack from '../track/SpotifyTrack.js'
 
 export default class MusicSystem extends MusicServerModule {
     queue = new MusicQueue();
@@ -56,7 +54,7 @@ export default class MusicSystem extends MusicServerModule {
     }
 
     /**
-     * @param {LavaTrack|SpotifyTrack} [track=null] The track to queue, if track is null then the next track in queue will be cached (if needed).
+     * @param {ResolvableTrack} [track=null] The track to queue, if track is null then the next track in queue will be cached (if needed).
      */
     async cacheSongIfNeeded(track = null) {
         if (track == null) {
@@ -65,7 +63,7 @@ export default class MusicSystem extends MusicServerModule {
             if (track == null) return;
         }
 
-        if ((track instanceof SpotifyTrack || track instanceof DeezerTrack) && !track.cached)
+        if (track.needsCaching && !await track.cached())
             await track.getYouTubeEquiv();
     }
 
