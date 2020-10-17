@@ -96,7 +96,7 @@ export default class SpotifyTrack {
             search = null;
 
         do {
-            search = await this._m.getModule('api').youtube.search(this.title);
+            search = await this._m.modules.api.youtube.search(this.title);
 
             attempt++;
         } while ((!search || search.length == 0 || !search[0].id || typeof search !== 'object') && attempt < 3);
@@ -110,7 +110,7 @@ export default class SpotifyTrack {
         let data = null;
         attempt = 0;
         do {
-            data = await this._m.getModule('lavalink').conn.getNode().rest.resolve(`https://youtu.be/${search[0].id}`);
+            data = await this._m.modules.lavalink.conn.getNode().rest.resolve(`https://youtu.be/${search[0].id}`);
 
             attempt++;
         } while ((data == null || data === true || data.tracks.length == 0) && attempt < 3 );

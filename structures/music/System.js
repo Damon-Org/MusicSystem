@@ -25,7 +25,7 @@ export default class MusicSystem extends MusicServerModule {
      * @returns {Shoukaku} The class to interact with Lavalin nodes.
      */
     get lava() {
-        return this._m.getModule('lavalink').conn;
+        return this._m.modules.lavalink.conn;
     }
 
     /**
@@ -124,7 +124,7 @@ export default class MusicSystem extends MusicServerModule {
 
         this.lastMsg = newMsg;
 
-        const reactionInterface = this.getModule('reactionInterface');
+        const reactionInterface = this.modules.reactionInterface;
         this.reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'toggle', null, -1);
 
         this.reactionListener.on('timeout', () => this.shutdown.instant());

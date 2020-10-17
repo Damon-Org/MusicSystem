@@ -59,7 +59,7 @@ export default class MusicUtils {
         }
 
         const choice = new MusicChoice(
-            this.music.getModule('api').youtube,
+            this.music.modules.api.youtube,
             searchFor
         );
         if (!await choice.genDescription()) {
@@ -82,7 +82,7 @@ export default class MusicUtils {
 
         const emojis = ['\u0031\u20E3','\u0032\u20E3','\u0033\u20E3','\u0034\u20E3','\u0035\u20E3', '🚫'];
 
-        const reactionInterface = this.music.getModule('reactionInterface');
+        const reactionInterface = this.music.modules.reactionInterface;
         const reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'add');
 
         reactionListener.on('timeout', () => {
@@ -157,7 +157,7 @@ export default class MusicUtils {
 
         const emojis = ['✅', '❎'];
 
-        const reactionInterface = this.music.getModule('reactionInterface');
+        const reactionInterface = this.music.modules.reactionInterface;
         const reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'add', {
             playlist: data
         });
@@ -312,8 +312,8 @@ export default class MusicUtils {
                         isPlaylist = spotify.includes('/playlist/'),
                         playlist =
                             isPlaylist
-                            ? (await this.music._m.getModule('api').spotify.getPlaylist(spotify.split('/playlist/')[1])).body
-                            : (await this.music._m.getModule('api').spotify.getAlbum(spotify.split('/album/')[1])).body;
+                            ? (await this.music._m.modules.api.spotify.getPlaylist(spotify.split('/playlist/')[1])).body
+                            : (await this.music._m.modules.api.spotify.getAlbum(spotify.split('/album/')[1])).body;
 
                     noticeMsg.then(msg => msg.delete());
                     msgObj.channel.send(`I added the ${isPlaylist ? 'playlist' : 'album'} **${playlist.name}** with **${playlist.tracks.items.length}** tracks!`);
@@ -332,7 +332,7 @@ export default class MusicUtils {
                     return true;
                 }
                 else if (spotify.includes('/track/')) {
-                    const track = (await this.music._m.getModule('api').spotify.getTrack(spotify.split('/track/')[1])).body;
+                    const track = (await this.music._m.modules.api.spotify.getTrack(spotify.split('/track/')[1])).body;
 
                     data = new SpotifyTrack(track, this.music._m);
                 }
@@ -351,13 +351,13 @@ export default class MusicUtils {
 
                 // the link is a shortened version without identifiers for track, album or playlist
                 if (!deezer.includes('/playlist') && !deezer.includes('/album/') && !deezer.includes('/track/')) {
-                    const trackLink = await this.music._m.getModule('api').deezer.fetchSharableLink(deezer);
+                    const trackLink = await this.music._m.modules.api.deezer.fetchSharableLink(deezer);
 
                     deezer = new URL(trackLink).pathname;
 
                     // if its a regular track we just add it and call it a day
                     if(!deezer.includes('/playlist/') && !deezer.includes('/album/')) {
-                        const track = (await this.music._m.getModule('api').deezer.getTrack(deezer.split('/track/')[1]));
+                        const track = (await this.music._m.modules.api.deezer.getTrack(deezer.split('/track/')[1]));
 
                         data = new DeezerTrack(track, this.music._m);
 
@@ -373,8 +373,8 @@ export default class MusicUtils {
                         isPlaylist = deezer.includes('/playlist/'),
                         playlist =
                             isPlaylist
-                            ? (await this.music._m.getModule('api').deezer.getPlaylist(deezer.split('/playlist/')[1]))
-                            : (await this.music._m.getModule('api').deezer.getAlbum(deezer.split('/album/')[1]));
+                            ? (await this.music._m.modules.api.deezer.getPlaylist(deezer.split('/playlist/')[1]))
+                            : (await this.music._m.modules.api.deezer.getAlbum(deezer.split('/album/')[1]));
 
                     noticeMsg.then(msg => msg.delete());
                     msgObj.channel.send(`I added the ${isPlaylist ? 'playlist' : 'album'} **${playlist.title}** from Deezer, with **${playlist.tracks.data.length}** tracks!`);
@@ -392,7 +392,7 @@ export default class MusicUtils {
                     return true;
                 }
                 else if (deezer.includes('/track/')) {
-                    const track = (await this.music._m.getModule('api').deezer.getTrack(deezer.split('/track/')[1]));
+                    const track = (await this.music._m.modules.api.deezer.getTrack(deezer.split('/track/')[1]));
                     data = new DeezerTrack(track, this.music._m);
                 } else {
                     msgObj.channel.send('I have no idea what to do with that deezer link? <:thinking_hard:560389998806040586>')
