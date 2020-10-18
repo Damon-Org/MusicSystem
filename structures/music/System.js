@@ -693,6 +693,8 @@ export default class MusicSystem extends MusicServerModule {
 
             return;
         }
+        
+        this._m.emit('trackPlayed', currentSong);
 
         this.player.on('error', (error) => this.nodeError(error));
 
