@@ -15,28 +15,6 @@ export default class MusicUtils {
     }
 
     /**
-     * @param {Array<string>}
-     */
-    checkRequestType(args) {
-        if (args.length > 1) {
-            return -1;
-        }
-
-        if (args[0].includes('https://') || args[0].includes('http://')) {
-            try {
-                const url = new URL(args[0]);
-
-                if (url.hostname == 'open.spotify.com') return 1;
-                if (url.hostname == 'deezer.page.link' || 'www.deezer.com' || 'deezer.com') return 2;
-
-                return 0;
-            } catch (e) {
-                return -1;
-            }
-        }
-    }
-
-    /**
      * Creates a new ChoiceEmbed embed
      * @param {Message} msgObj A Discord Message instance
      * @param {string} searchFor A string to search for in the Youtube API
@@ -133,86 +111,6 @@ export default class MusicUtils {
     }
 
     /**
-     * Creates an embed asking if the user would like to add the detected playlist or not
-     * @param {string} origVideoId The original videoId
-     * @param {Array<Object>} data The fetched playlist
-     * @param {Message} msgObj
-     * @param {Message} noticeMsg
-     * @param {boolean} [exception=false]
-     */
-    async createPlaylistFoundEmbed(origVideoId, data, msgObj, noticeMsg, exception = false) {
-        const server = this.music.server;
-        const serverMember = msgObj.member;
-        const voiceChannel = serverMember.voice.channel;
-
-        const richEmbed = new MessageEmbed()
-            .setAuthor('Playlist detected.')
-            .setColor('#252422')
-            .setDescription(`I\'ve detected that this song contains a playlist,\nare you sure you want to add **${data.length}** songs?\n\nBy confirming you agree that all songs will be added till the queue limit is hit.\nIf you decline only the original song will be added, if the playlist link does not contain a YouTube video then nothing will be added to the queue.\n\n**Keep in mind that the playlist will be added from the beginning.**`)
-            .setFooter(`Playlist Detected`);
-
-        let newMsg = msgObj.reply(richEmbed);
-        noticeMsg.then(msg => msg.delete());
-        newMsg = await newMsg;
-
-        const emojis = ['✅', '❎'];
-
-        const reactionInterface = this.music.modules.reactionInterface;
-        const reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'add', {
-            playlist: data
-        });
-
-        reactionListener.on('timeout', () => {
-            newMsg.delete();
-        });
-        reactionListener.on('reaction', async (emoji, user) => {
-            if (serverMember.user.id !== user.id || !voiceChannel) return;
-            reactionListener.cleanup();
-
-            const { playlist } = reactionListener.getData();
-
-            newMsg.delete();
-
-            if (emoji == emojis[0]) {
-                newMsg.channel.send('Successfully added playlist!');
-
-                for (let i = 0; i < playlist.length; i++) {
-                    const song = new LavaTrack(playlist[i]);
-                    if (!await this.handleSongData(song, serverMember, newMsg, voiceChannel, null, false, false)) break;
-                }
-
-                return;
-            }
-
-            if (!origVideoId) {
-                const richEmbed = new MessageEmbed()
-                    .setTitle('Playlist Exception.')
-                    .setDescription(`Playlist link did not contain a song to select.`)
-                    .setColor('#ed4337');
-
-                newMsg.channel.send(richEmbed);
-
-                return;
-            }
-
-            const data = await this.music.node.rest.resolve(`https://youtu.be/${origVideoId}`);
-            if (!data) {
-                const richEmbed = new MessageEmbed()
-                    .setTitle('No results returned.')
-                    .setDescription(`I could not find the track you requested or access to this track is limited.\nPlease try again with something other than what you tried to search for.`)
-                    .setColor('#ed4337');
-
-                newMsg.channel.send(richEmbed);
-
-                return;
-            }
-
-            data = new LavaTrack(data);
-            this.handleSongData(data, serverMember, newMsg, voiceChannel, null, exception);
-        });
-    }
-
-    /**
      * Helper function which handles a repetitive task
      * @param {LavaTrack|SpotifyTrack} track Track of any kind
      * @param {GuildMember} serverMember The guild member that made the request
@@ -274,8 +172,22 @@ export default class MusicUtils {
 
         const data = await trackResolver.resolve(args[0]);
 
+        if (!data) {
+            noticeMsg.then(msg => msg.delete());
+
+            const richEmbed = new MessageEmbed()
+                .setTitle('I could not find the track you requested')
+                .setDescription(`No results returned for ${args.join(' ')}.`)
+                .setColor('#ed4337');
+
+            msgObj.channel.send(richEmbed);
+
+            return true;
+        }
+
         if (data instanceof Array) {
             noticeMsg.then(msg => msg.delete());
+            msgObj.channel.send('Successfully added playlist!');
 
             for (const item of data) {
                 if (!await this.handleSongData(item, requester, msgObj, voiceChannel, null, false, false)) break;
