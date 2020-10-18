@@ -2,10 +2,6 @@ import { MessageEmbed } from 'discord.js'
 
 import MusicChoice from '../structures/music/Choice.js'
 
-import DeezerTrack from '../structures/track/DeezerTrack.js'
-import LavaTrack from '../structures/track/LavaTrack.js'
-import SpotifyTrack from '../structures/track/SpotifyTrack.js'
-
 export default class MusicUtils {
     /**
      * @param {MusicSystem} music

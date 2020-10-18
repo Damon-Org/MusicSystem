@@ -3,6 +3,7 @@ import { MessageEmbed } from 'discord.js'
 import MusicQueue from './Queue.js'
 import MusicUtils from '../../util/Music.js'
 import ShutdownManager from '../../util/ShutdownManager.js'
+import LavaTrack from '../track/LavaTrack.js'
 
 export default class MusicSystem extends MusicServerModule {
     queue = new MusicQueue();
