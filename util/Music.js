@@ -1,6 +1,7 @@
 import { MessageEmbed } from 'discord.js'
 
 import MusicChoice from '../structures/music/Choice.js'
+import LavaTrack from '../structures/track/LavaTrack.js'
 
 export default class MusicUtils {
     /**
