@@ -16,7 +16,6 @@ export default class Music extends MusicSystem {
             requires: [
                 'api',
                 'eventExtender',
-                'guildSetting',
                 'lavalink'
             ],
             events: [
