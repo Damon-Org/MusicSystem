@@ -443,7 +443,7 @@ export default class MusicSystem extends MusicServerModule {
         }
         await this.player.setVolume(this.volume);
 
-        this.player.on('start', () => this.soundStart());
+        this.player.on('start', () => this.soundPrepare());
 
         this.cacheSongIfNeeded();
 
@@ -679,25 +679,39 @@ export default class MusicSystem extends MusicServerModule {
         this.playNext();
     }
 
-    soundStart() {
+    /**
+     * Checks if the track is stuck and listens to the lavalink track events.
+    */
+    soundPrepare() {
         const currentSong = this.queue.active();
-
-        this.soundActive = true;
-
-        this._m.log.info('MUSIC_SYSTEM', 'Started track: ' + currentSong ? currentSong.title : '{ REMOVED SONG }');
 
         if (this.end.type == 'TrackStuckEvent') {
             clearTimeout(this.trackStuckTimeout);
 
             return;
         }
-        
-        this._m.emit('trackPlayed', currentSong);
+
+        this.player.on('start', (data) => this.soundStart(data, currentSong));
 
         this.player.on('error', (error) => this.nodeError(error));
 
         this.player.on('end', (end) => this.soundEnd(end));
     }
+
+    /**
+     * Fired when Lavalink successfully begins playing a track.
+     * @param {Object} [data={}] By default an empty object.
+     * @param {Object|null} [song=null] Current song object.
+     */
+    soundStart(data = {}, song = null) {
+        if(!song) return;
+
+        this.soundActive = true;
+
+        this._m.log.info('MUSIC_SYSTEM', 'Started track: ' + song ? song.title : '{ REMOVED SONG }');
+
+        this._m.emit('trackPlayed', song);
+    }   
 
     /**
      * Will start the queue in the given voicechannel
