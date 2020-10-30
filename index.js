@@ -12,7 +12,10 @@ export default class Music extends MusicSystem {
 
         this.register(Music, {
             name: 'music',
-            scope: 'server',
+            scope: {
+                group: 'server',
+                name: 'music'
+            },
             requires: [
                 'api',
                 'eventExtender',
@@ -33,6 +36,10 @@ export default class Music extends MusicSystem {
 
     get constants() {
         return Constants;
+    }
+
+    initScope() {
+        this.reset(true);
     }
 
     /**
@@ -72,15 +79,5 @@ export default class Music extends MusicSystem {
         if (!voiceChannel.guild.me.voice.channel) {
             server.music.shutdown.instant();
         }
-    }
-
-    /**
-     * This method is only ran once to setup the module
-     * we can abuse this to add our event listeners globally
-     */
-    setup() {
-
-
-        return true;
     }
 }

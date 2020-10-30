@@ -16,8 +16,6 @@ export default class MusicSystem extends MusicServerModule {
      */
     constructor(main, server) {
         super(main, server);
-
-        this.reset();
     }
 
     /**
