@@ -119,15 +119,16 @@ export default class MusicUtils {
      * @returns {boolean} Returns true upon success, false on failure => all actions should be stopped
      */
     async handleSongData(track, serverMember, msgObj, voiceChannel, noticeMsg = null, exception = false, allowSpam = true) {
-        const musicSystem = this.music;
         if (noticeMsg) noticeMsg.then(msg => msg.delete());
 
-        if (musicSystem.shutdown.type() == 'leave') musicSystem.reset(false);
+        if (this.music.shutdown.type() == 'leave') {
+            this.music.reset(false);
+        }
 
-        if (musicSystem.queueExists()) {
-            if (musicSystem.isDamonInVC(voiceChannel) || !allowSpam) {
-                if (!musicSystem.addToQueue(track, serverMember, exception)) {
-                    msgObj.channel.send(`The queue is full, this server is limited to ${musicSystem.queue.maxLength} tracks.`)
+        if (this.music.queueExists()) {
+            if (this.music.isDamonInVC(voiceChannel) || !allowSpam) {
+                if (!this.music.addToQueue(track, serverMember, exception)) {
+                    msgObj.channel.send(`The queue is full, this server is limited to ${this.music.queue.maxQueue} tracks.`)
                         .then(msg => msg.delete({timeout: 5e3}));
 
                     return false;
@@ -142,9 +143,9 @@ export default class MusicUtils {
 
             return false;
         }
-        await musicSystem.createQueue(track, serverMember, msgObj.channel);
+        await this.music.createQueue(track, serverMember, msgObj.channel);
 
-        if (await musicSystem.startQueue(voiceChannel) && allowSpam) {
+        if (await this.music.startQueue(voiceChannel) && allowSpam) {
             msgObj.channel.send(`Playback starting with **${track.title}**`);
         }
         return true;

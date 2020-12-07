@@ -443,8 +443,7 @@ export default class MusicSystem extends MusicServerModule {
         }
         await this.player.setVolume(this.volume);
 
-        this.player.on('start', () => this.soundPrepare());
-
+        this.soundPrepare();
         this.cacheSongIfNeeded();
 
         //this.player.on('closed', () => this.soundEnd(end));
@@ -532,6 +531,7 @@ export default class MusicSystem extends MusicServerModule {
         this.disableOldPlayer(true);
 
         this.queue.reset();
+        this.shutdown.cancel();
 
         if (this.player) this.player.removeAllListeners();
 
@@ -683,35 +683,32 @@ export default class MusicSystem extends MusicServerModule {
      * Checks if the track is stuck and listens to the lavalink track events.
     */
     soundPrepare() {
+        this.soundActive = true;
+
         const currentSong = this.queue.active();
 
+        this.player.on('start', () => this.soundStart(currentSong));
+        this.player.on('error', (error) => this.nodeError(error));
+        this.player.on('end', (end) => this.soundEnd(end));
+    }
+
+    /**
+     * Fired when Lavalink successfully begins playing a track.
+     * @param {Object|null} [song=null] Current song object.
+     */
+    soundStart(song = null) {
         if (this.end.type == 'TrackStuckEvent') {
             clearTimeout(this.trackStuckTimeout);
 
             return;
         }
 
-        this.player.on('start', (data) => this.soundStart(data, currentSong));
+        this._m.emit('trackPlayed', song);
 
-        this.player.on('error', (error) => this.nodeError(error));
-
-        this.player.on('end', (end) => this.soundEnd(end));
-    }
-
-    /**
-     * Fired when Lavalink successfully begins playing a track.
-     * @param {Object} [data={}] By default an empty object.
-     * @param {Object|null} [song=null] Current song object.
-     */
-    soundStart(data = {}, song = null) {
         if(!song) return;
 
-        this.soundActive = true;
-
         this._m.log.info('MUSIC_SYSTEM', 'Started track: ' + song ? song.title : '{ REMOVED SONG }');
-
-        this._m.emit('trackPlayed', song);
-    }   
+    }
 
     /**
      * Will start the queue in the given voicechannel

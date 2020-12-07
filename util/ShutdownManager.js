@@ -34,7 +34,6 @@ export default class MusicShutdown {
     }
 
     type() {
-        if (this._type == null) return false;
         return this._type;
     }
 
