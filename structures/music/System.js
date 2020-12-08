@@ -279,7 +279,7 @@ export default class MusicSystem extends MusicServerModule {
         const activeSong = this.queue.active();
 
         if (activeSong == null) {
-            this.queue.remove(null);
+            this.queue.removeOnPosition(1);
         }
         else if (activeSong.repeat) {
             this.continueQueue();
@@ -319,7 +319,7 @@ export default class MusicSystem extends MusicServerModule {
 
         if (this.queue.active() == null) {
             // Remove the current active song
-            this.queue.remove(null);
+            this.queue.removeOnPosition(1);
 
             this.queue.unshift(null);
 
