@@ -90,6 +90,7 @@ export default class MusicSystem extends MusicServerModule {
         this.updateSongState();
 
         const track = this.queue.active();
+        if (!track) return;
         if (this.lastMsg && this.channel.lastMessageID == this.lastMsg.id) {
             this._m.embedUtils.editEmbed(this.lastMsg, {
                 author: { name: track.full_author },
