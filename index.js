@@ -220,8 +220,8 @@ export default class Music extends ServerModule {
         this.join(voiceChannel).catch(err => {
             const embed = new MessageEmbed();
 
-            switch (err.message.toUpperCase()) {
-                case 'VOICECHANNEL FULL': {
+            switch (err.message.toLowerCase()) {
+                case 'voicechannel full': {
                     embed
                         .setTitle('Channel Full')
                         .setColor('#ff0033')
@@ -229,18 +229,21 @@ export default class Music extends ServerModule {
 
                     break;
                 }
-                case 'MISSING PERMISSIONS': {
+                case 'missing permissions': {
                     embed
                         .setTitle('Insufficient permissions')
                         .setColor('#ff0033')
                         .setDescription('I do not have permission to join your channel.');
 
+                    break
                 }
-                case 'NO LAVALINK NODES': {
+                case 'no lavalink nodes': {
                     embed
                         .setTitle('No Audio Nodes')
                         .setColor('#ff0033')
-                        .setDescription('There don\'t appear to be any audio servers connected, requested failed...');
+                        .setDescription('There don\'t appear to be any audio servers connected, request failed...');
+
+                    break;
                 }
                 default: {
                     embed
