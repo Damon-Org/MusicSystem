@@ -1,5 +1,4 @@
 import { MessageEmbed } from 'discord.js'
-
 import MusicChoice from '../structures/music/Choice.js'
 import LavaTrack from '../structures/track/LavaTrack.js'
 
@@ -16,7 +15,7 @@ export default class MusicUtils {
      * @param {Message} msgObj A Discord Message instance
      * @param {string} searchFor A string to search for in the Youtube API
      * @param {Message} noticeMsg
-     * @param {boolean} [exception=false] If the song should be added next up
+     * @param {boolean} [exception = false] If the song should be added next up
      */
     async createNewChoiceEmbed(msgObj, searchFor, noticeMsg, exception = false) {
         const serverMember = msgObj.member;
@@ -24,7 +23,7 @@ export default class MusicUtils {
 
         noticeMsg.then(msg => msg.delete());
 
-        if (this.music.queueExists() && !this.music.isDamonInVC(voiceChannel)) {
+        if (this.music.active() && !this.music.isDamonInVC(voiceChannel)) {
             const newMsg = await msgObj.reply('you aren\'t in my voice channel! 😣');
 
             newMsg.delete({timeout: 5500});
@@ -101,99 +100,9 @@ export default class MusicUtils {
                 return;
             }
 
-            this.handleSongData(data, serverMember, newMsg, voiceChannel, null, exception);
+            this.music.handleData(data, serverMember, newMsg, voiceChannel, null, exception);
         });
 
         // const emojis = ['\u0030\u20E3','\u0031\u20E3','\u0032\u20E3','\u0033\u20E3','\u0034\u20E3','\u0035\u20E3', '\u0036\u20E3','\u0037\u20E3','\u0038\u20E3','\u0039\u20E3'];
-    }
-
-    /**
-     * Helper function which handles a repetitive task
-     * @param {LavaTrack|SpotifyTrack} track Track of any kind
-     * @param {GuildMember} serverMember The guild member that made the request
-     * @param {Message} msgObj The original message that triggered the request
-     * @param {VoiceChannel} voiceChannel The voicechannel connected to the request
-     * @param {Message} [noticeMsg=null] The message that says "Looking up your request"
-     * @param {boolean} [exception=false] If the song should be added next up
-     * @param {boolean} [allowSpam=true] ONLY set this param when adding a playlist
-     * @returns {boolean} Returns true upon success, false on failure => all actions should be stopped
-     */
-    async handleSongData(track, serverMember, msgObj, voiceChannel, noticeMsg = null, exception = false, allowSpam = true) {
-        if (noticeMsg) noticeMsg.then(msg => msg.delete());
-
-        if (this.music.shutdown.type() == 'leave') {
-            this.music.reset(false);
-        }
-
-        if (this.music.queueExists()) {
-            if (this.music.isDamonInVC(voiceChannel) || !allowSpam) {
-                if (!this.music.addToQueue(track, serverMember, exception)) {
-                    msgObj.channel.send(`The queue is full, this server is limited to ${this.music.queue.maxQueue} tracks.`)
-                        .then(msg => msg.delete({timeout: 5e3}));
-
-                    return false;
-                }
-
-                if (allowSpam) msgObj.channel.send(exception ? `Added song *next up* **${track.title}**` : `Added song **${track.title}**`);
-
-                return true;
-            }
-            msgObj.reply('you aren\'t in my voice channel! 😣')
-                .then(msg => msg.delete({timeout: 5e3}));
-
-            return false;
-        }
-        await this.music.createQueue(track, serverMember, msgObj.channel);
-
-        if (await this.music.startQueue(voiceChannel) && allowSpam) {
-            msgObj.channel.send(`Playback starting with **${track.title}**`);
-        }
-        return true;
-    }
-
-    /**
-     * @param {Array<string>} args
-     * @param {Message} msgObj
-     * @param {GuildMember} requester
-     * @param {VoiceChannel} voiceChannel
-     * @param {Promise<Message>} noticeMsg
-     * @param {boolean} [exception=false]
-     */
-    async handleRequest(args, msgObj, requester, voiceChannel, noticeMsg, exception = false) {
-        const trackResolver = this.music.modules.trackResolver;
-
-        if (!trackResolver.isValidResolvable(args)) {
-            this.createNewChoiceEmbed(msgObj, args.join(' '), noticeMsg, exception);
-
-            return true;
-        }
-
-        const data = await trackResolver.resolve(args[0]);
-
-        if (!data) {
-            noticeMsg.then(msg => msg.delete());
-
-            const richEmbed = new MessageEmbed()
-                .setTitle('I could not find the track you requested')
-                .setDescription(`No results returned for ${args.join(' ')}.`)
-                .setColor('#ed4337');
-
-            msgObj.channel.send(richEmbed);
-
-            return true;
-        }
-
-        if (data instanceof Array) {
-            noticeMsg.then(msg => msg.delete());
-            msgObj.channel.send('Successfully added playlist!');
-
-            for (const item of data) {
-                if (!await this.handleSongData(item, requester, msgObj, voiceChannel, null, false, false)) break;
-            }
-
-            return true;
-        }
-
-        return this.handleSongData(data, requester, msgObj, voiceChannel, noticeMsg, exception);
     }
 }
