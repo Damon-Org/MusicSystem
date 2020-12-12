@@ -1,4 +1,4 @@
-export default class MusicServerModule {
+export default class ServerModule {
     /**
      * @param {Main} main The program entrypoint class
      * @param {Server} [server=-1]
