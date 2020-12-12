@@ -1,40 +1,36 @@
-import humanReadableTime from 'humanize-duration'
-
-export default class MusicShutdown {
+export default class ShutdownManager {
     /**
-     * @param {MusicSystem} music
+     * @param {Object} system
      */
-    constructor(music) {
-        this.music = music;
+    constructor(system) {
+        this.system = system;
+    }
+
+    get type() {
+        return this._type;
     }
 
     cancel() {
         this.reset();
-
-        if (this.shutdownMsg) this.shutdownMsg.then(msg => msg.delete());
-        this.shutdownMsg = null;
     }
 
-    delay(type, timeout) {
+    delay(type, timeout, callback = null) {
         if (this._timeout) clearTimeout(this._timeout);
         this._type = type;
 
-        if (type == 'time')
-            this.shutdownMsg = this.music.channel.send(`The queue will be destroyed within ${humanReadableTime(timeout)}, rejoin within that time to resume music playback.`);
+        return new Promise((resolve, reject) => {
+            this._timeout = setTimeout(() => {
+                if (typeof callback === 'function') callback();
 
-        this._timeout = setTimeout(() => {
-            this.instant();
-        }, timeout);
+                this.instant();
+            }, timeout);
+        });
     }
 
     instant() {
         this.reset();
 
-        this.music.reset(true);
-    }
-
-    type() {
-        return this._type;
+        this.system.reset(true);
     }
 
     reset() {
