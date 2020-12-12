@@ -1,5 +1,28 @@
 import EqBand from '../structures/equalizer/Band.js'
 
+export const PlayTrackOptions = {
+    noReplace: false
+};
+
+export const State = {
+    INACTIVE:  0,
+    PROCESSING: 2,
+    PLAYING: 3,
+    SWITCHING: 4,
+    ENDING: 5
+};
+
+export const SystemReset = {
+    end: {},
+    lastPlayer: null,
+    paused: false,
+    player: null,
+    startTime: 0,
+    textChannel: null,
+    voiceChannel: null,
+    volume: 30
+};
+
 /**
  * Frequency / Band
  *
@@ -148,5 +171,7 @@ export const EqualizerBands = {
 };
 
 export default {
-    EqualizerBands
+    EqualizerBands,
+    State,
+    SystemReset
 };
