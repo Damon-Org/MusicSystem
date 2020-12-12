@@ -94,7 +94,7 @@ export default class MusicQueue extends Array {
 
     /**
      * Removes a song by the position in queue
-     * @returns {boolean} False if the given position is invalid, true on success.
+     * @returns {TrackObject} False if the given position is invalid, true on success.
      */
     removeOnPosition(position) {
         position = parseInt(position);
@@ -103,17 +103,17 @@ export default class MusicQueue extends Array {
             position--;
         }
 
-        if (position == 0 || !this[this.maxPrequeue + position]) {
-            return false;
+        if (!this.hasOnPosition(position)) {
+            return undefined;
         }
 
-        this.splice(this.maxPrequeue + position, 1);
+        const [item] = this.splice(this.maxPrequeue + position, 1);
 
         if (position < 0) {
             this.unshift(null);
         }
 
-        return true;
+        return item;
     }
 
     reset() {
