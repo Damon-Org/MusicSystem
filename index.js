@@ -704,7 +704,7 @@ export default class Music extends ServerModule {
             clearTimeout(this.trackStuckTimeout);
             this.trackStuckTimeout = setTimeout(async () => {
                 if (!await this.player.stopTrack()) this.soundEnd();
-            }, 5e3);
+            }, 15e3);
 
             return;
         }
