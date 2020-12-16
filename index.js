@@ -202,7 +202,13 @@ export default class Music extends ServerModule {
      * Disconnects the player if one exists
      */
     disconnect() {
-        if (this.player) this.player.disconnect();
+        if (this.player) {
+            this.player.removeAllListeners();
+
+            this.player.disconnect();
+        }
+        this.player = null;
+        this.voiceChannel = null;
     }
 
     /**
