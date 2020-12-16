@@ -1,4 +1,9 @@
 export default class ShutdownManager {
+    _args = [];
+    _call = null;
+    _timeout = null;
+    _type = null;
+
     /**
      * @param {Object} system
      */
@@ -14,14 +19,14 @@ export default class ShutdownManager {
         this.reset();
     }
 
-    delay(type, timeout, callback = null) {
+    delay(type, timeout, callback = null, ...args) {
+        if (args) this._args = args;
+
         if (this._timeout) clearTimeout(this._timeout);
         this._type = type;
 
         return new Promise((resolve, reject) => {
             this._timeout = setTimeout(() => {
-                if (typeof callback === 'function') callback();
-
                 this.instant();
             }, timeout);
         });
@@ -34,8 +39,11 @@ export default class ShutdownManager {
     }
 
     reset() {
+        if (typeof this._call === 'function') this._call(...this.args);
         if (this._timeout) clearTimeout(this._timeout);
 
+        this._args = [];
+        this._call = null;
         this._timeout = null;
         this._type = null;
     }
