@@ -833,7 +833,9 @@ export default class Music extends ServerModule {
         if (!server || !server.music.active() || !server.music.isDamonInVC(voiceChannel)) return;
 
         if (voiceChannel.members.size == 1 && !server.music.shutdown.type) {
-            server.music.shutdown.delay('time', 3e5);
+            const msg = this.textChannel.send(`The queue will be destroyed within 5 minutes, rejoin within that time to resume music playback.`);
+
+            server.music.shutdown.delay('time', 3e5, (msg) => msg.then(msg => !msg.deleted ?? msg.delete()), msg);
         }
         server.dj.remove(serverMember);
 
