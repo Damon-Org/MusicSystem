@@ -713,13 +713,14 @@ export default class Music extends ServerModule {
 
         //this.player.removeAllListeners();
 
+        const currentSong = this.queue.active();
         if (end.reason === 'LOAD_FAILED') {
-            this.playTrack();
+            this.textChannel.send(`The uploader has not made **${currentSong.title}** available in your country.`);
+
+            this.playNextTrack();
 
             return;
         }
-
-        const currentSong = this.queue.active();
 
         this.log.info('MUSIC_SYSTEM', `Finished track: ${currentSong ? currentSong.title : '{ REMOVED SONG }'}`);
 
