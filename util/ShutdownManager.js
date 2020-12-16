@@ -20,6 +20,7 @@ export default class ShutdownManager {
     }
 
     delay(type, timeout, callback = null, ...args) {
+        if (callback) this._call = callback;
         if (args) this._args = args;
 
         if (this._timeout) clearTimeout(this._timeout);
@@ -39,7 +40,7 @@ export default class ShutdownManager {
     }
 
     reset() {
-        if (typeof this._call === 'function') this._call(...this.args);
+        if (typeof this._call === 'function') this._call(...this._args);
         if (this._timeout) clearTimeout(this._timeout);
 
         this._args = [];
