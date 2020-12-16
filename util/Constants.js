@@ -16,10 +16,8 @@ export const SystemReset = {
     end: {},
     lastPlayer: null,
     paused: false,
-    player: null,
     startTime: 0,
     textChannel: null,
-    voiceChannel: null,
     volume: 30
 };
 
