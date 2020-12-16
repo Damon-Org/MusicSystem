@@ -94,6 +94,30 @@ export default class Music extends ServerModule {
         return this.queue.add(track);
     }
 
+    attemptRejoin(data = {}) {
+        if (data.type === 'WebSocketClosedEvent') {
+            if (data.code === 4014) return this.reset(true);
+
+            this.player?.disconnect();
+
+            setTimeout(() => {
+                this.setState('SWITCHING');
+
+                this.join().catch(() => this.reset(true));
+
+                this.playNextTrack();
+            }, 150);
+
+            return;
+        }
+
+        this.log.error('MUSIC_SYSTEM', 'Rejoin failure, unknown event type:', data);
+
+        this.textChannel.send('Unknown connection failure, shutting down...');
+
+        this.reset(true);
+    }
+
     /**
      * @param {ResolvableTrack} [track = null] The track to queue, if track is null then the next track in queue will be cached (if needed).
      */
@@ -387,8 +411,8 @@ export default class Music extends ServerModule {
 
         // Reconnect no matter what
         this.player.then(player => {
-            player.on('closed', this.join.bind(this));
-            player.on('nodeDisconnect', this.join.bind(this));
+            player.on('closed', this.attemptRejoin.bind(this));
+            player.on('nodeDisconnect', this.attemptRejoin.bind(this));
 
             player.on('start', this.soundStart.bind(this));
             player.on('error', this.nodeError.bind(this));
