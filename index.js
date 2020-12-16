@@ -347,7 +347,7 @@ export default class Music extends ServerModule {
      */
     isDamonInVC(voiceChannel) {
         if (!voiceChannel) return false;
-        return voiceChannel.members.has(this._m.user.id);
+        return voiceChannel.members?.has(this._m.user.id);
     }
 
     nodeError(err) {
