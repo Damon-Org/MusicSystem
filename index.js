@@ -513,8 +513,10 @@ export default class Music extends ServerModule {
                 }
 
                 this.disableOldPlayer(true);
-                this.textChannel.send(`Queue has been concluded and the bot will leave in 5 minutes, type the \`restart\` command to requeue your the old queue (only if within those same 5 minutes).`);
-                this.shutdown.delay('leave', 3e5);
+                const msg = this.textChannel.send(`Queue has been concluded and the bot will leave in 5 minutes, type the \`restart\` command to requeue your the old queue (only if within those same 5 minutes).`);
+                this.shutdown.delay('leave', 3e5, (msg) => {
+                    msg.then(msg => !msg.deleted ?? msg.delete());
+                }, msg);
 
                 return;
             }
