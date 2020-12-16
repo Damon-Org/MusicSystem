@@ -514,9 +514,7 @@ export default class Music extends ServerModule {
 
                 this.disableOldPlayer(true);
                 const msg = this.textChannel.send(`Queue has been concluded and the bot will leave in 5 minutes, type the \`restart\` command to requeue your the old queue (only if within those same 5 minutes).`);
-                this.shutdown.delay('leave', 3e5, (msg) => {
-                    msg.then(msg => !msg.deleted ?? msg.delete());
-                }, msg);
+                this.shutdown.delay('leave', 3e5, (msg) => msg.then(msg => { if (!msg.deleted) msg.delete() }), msg);
 
                 return;
             }
@@ -833,9 +831,9 @@ export default class Music extends ServerModule {
         if (!server || !server.music.active() || !server.music.isDamonInVC(voiceChannel)) return;
 
         if (voiceChannel.members.size == 1 && !server.music.shutdown.type) {
-            const msg = this.textChannel.send(`The queue will be destroyed within 5 minutes, rejoin within that time to resume music playback.`);
+            const msg = server.music.textChannel.send(`The queue will be destroyed within 5 minutes, rejoin within that time to resume music playback.`);
 
-            server.music.shutdown.delay('time', 3e5, (msg) => msg.then(msg => !msg.deleted ?? msg.delete()), msg);
+            server.music.shutdown.delay('time', 3e5, (msg) => msg.then(msg => { if (!msg.deleted) msg.delete() }), msg);
         }
         server.dj.remove(serverMember);
 
