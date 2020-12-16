@@ -645,7 +645,6 @@ export default class Music extends ServerModule {
     reset(disconnect = true) {
         this.setState('INACTIVE');
 
-        if (this.player) this.player.removeAllListeners();
         if (disconnect) this.disconnect();
 
         this.disableOldPlayer(true);
