@@ -1,6 +1,7 @@
 import { OnMusicPlayerAction } from './structures/music/Action.js'
 import Constants, { PlayTrackOptions, State, SystemReset } from './util/Constants.js'
 import Discord, { MessageEmbed } from 'discord.js'
+import { dirname } from 'path'
 import MusicUtils from './util/Music.js'
 import Queue from './structures/music/Queue.js'
 import ServerModule from './structures/modules/ServerModule.js'
@@ -66,6 +67,12 @@ export default class Music extends ServerModule {
 
     set state(new_value) {
         this._state = State[new_value];
+    }
+
+    init() {
+        this.modules.commandRegistrar.registerCommands('Music', dirname(import.meta.url), true);
+
+        return true;
     }
 
     initScope() {
