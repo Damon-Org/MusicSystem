@@ -22,7 +22,7 @@ export default class SkipTo extends MusicCommand {
                 {
                     name: 'queue-number',
                     description: 'Number of a song in queue',
-                    type: 'number',
+                    type: 'int',
                     required: true
                 }
             ],

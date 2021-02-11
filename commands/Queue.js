@@ -22,7 +22,7 @@ export default class Queue extends BaseCommand {
                 {
                     name: 'page-number',
                     description: 'Queue page number',
-                    type: 'number',
+                    type: 'int',
                     default: 'Shows the first page of queue'
                 }
             ],

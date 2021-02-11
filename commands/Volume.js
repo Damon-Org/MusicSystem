@@ -23,7 +23,7 @@ export default class Volume extends MusicCommand {
                 {
                     name: 'volume',
                     description: 'A number ranging from 1 to 200',
-                    type: 'number',
+                    type: 'int',
                     default: 'Will show the current volume.'
                 }
             ],
@@ -36,7 +36,7 @@ export default class Volume extends MusicCommand {
      */
     async run(command) {
         if (this.music.isDamonInVC(this.voiceChannel)) {
-            const volume = this.args[0].toString();
+            const volume = this.args[0];
 
             if (!volume) {
                 this.reply('please give a value, command format: `volume #number`.')
@@ -45,23 +45,22 @@ export default class Volume extends MusicCommand {
                 return true;
             }
 
-            if (isNaN(volume) || volume.includes(',')) {
+            /*if (isNaN(volume) || volume.includes(',')) {
                 this.reply('invalid volume level, make sure you give a number and that there\'s no `,` in that number.')
                     .then(msg => msg.delete({timeout: 5e3}));
 
                 return true;
-            }
+            }*/
 
-            const vol = parseInt(volume);
-            if (vol < 5 || vol > 200) {
+            if (volume < 5 || volume > 200) {
                 this.reply('invalid volume level, please give a value between 5 and 200')
                     .then(msg => msg.delete({timeout: 5e3}));
 
                 return true;
             }
 
-            if (this.music.setVolume(vol)) {
-                this.send(`Volume level has been changed to \`${vol}\`.`);
+            if (this.music.setVolume(volume)) {
+                this.send(`Volume level has been changed to \`${volume}\`.`);
 
                 return true;
             }
