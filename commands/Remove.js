@@ -26,7 +26,7 @@ export default class Remove extends MusicCommand {
                     description: 'Title of the song or the queue number',
                     type: 'string',
                     default: 'Will remove the currently playing song from queue',
-                    allow_sentence: true
+                    is_sentence: true
                 }
             ],
             example: 'remove 3'

@@ -28,7 +28,7 @@ export default class Lyrics extends MusicCommand {
                     description: 'E.g. The name of the artist and the song.',
                     type: 'string',
                     required: false,
-                    allow_sentence: true
+                    is_sentence: true
                 }
             ],
             example: 'lyrics Alvaro Soler La Cintura'

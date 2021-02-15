@@ -24,7 +24,7 @@ export default class Play extends MusicCommand {
                     description: 'Search on YouTube or use a link to add to the queue.',
                     type: 'string',
                     required: true,
-                    allow_sentence: true
+                    is_sentence: true
                 }
             ],
             example: 'play https://www.youtube.com/watch?v=rVHn3GOXvzk'
