@@ -4,7 +4,7 @@ export default class MusicQueue extends Array {
 
         this.maxPrequeue = 50;
 
-        this.maxQueue = 350;
+        this.maxQueue = 550;
 
         this.reset();
     }
