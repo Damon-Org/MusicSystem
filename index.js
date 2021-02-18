@@ -349,7 +349,7 @@ export default class Music extends ServerModule {
         if (this.active()) {
             if (this.isDamonInVC(voiceChannel) || !spam) {
                 if (!this.addToQueue(track, requester, exception)) {
-                    msg.channel.send(`The queue is full, this server is limited to ${this.queue.maxQueue} tracks.`)
+                    msg.channel.send(`The queue is full, this server is limited to ${this.queue.maxQueue - this.queue.maxPrequeue} tracks.`)
                         .then(msg => msg.delete({timeout: 5e3}));
 
                     return false;
@@ -393,16 +393,12 @@ export default class Music extends ServerModule {
                     throw new Error('VoiceChannel full');
 
                     this.shutdown.instant();
-
-                    return false;
                 }
 
                 if (!voiceChannel.joinable) {
                     this.shutdown.instant();
 
                     throw new Error('Missing Permissions');
-
-                    return false;
                 }
             }
         }
@@ -519,7 +515,7 @@ export default class Music extends ServerModule {
                 }
 
                 this.disableOldPlayer(true);
-                const msg = this.textChannel.send(`Queue has been concluded and the bot will leave in 5 minutes, type the \`restart\` command to requeue your the old queue (only if within those same 5 minutes).`);
+                const msg = this.textChannel.send(`Queue has been concluded and the bot will leave in 5 minutes, type the \`restart\` command to requeue your old queue (only if within those same 5 minutes).`);
                 this.shutdown.delay('leave', 3e5, (msg) => msg.then(msg => { if (!msg.deleted) msg.delete() }), msg);
 
                 return;
