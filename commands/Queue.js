@@ -49,7 +49,7 @@ export default class Queue extends BaseCommand {
         }
 
         const pageSize = 10;
-        const number = this.args[0] ? this.args[0].toString() : null;
+        const number = this.args[0] ? this.args[0] : null;
         let page = 0;
         let bottomLimit = 0;
         let topLimit = 0;

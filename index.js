@@ -300,7 +300,7 @@ export default class Music extends ServerModule {
             return true;
         }
 
-        const { type, data } = await resolver.resolve(args[0].toString());
+        const { type, data } = await resolver.resolve(args[0]);
 
         if (!type) {
             noticeMsg.then(msg => msg.delete());
@@ -565,7 +565,7 @@ export default class Music extends ServerModule {
      * @param {string|number} query This can be a string identifying the track or
      */
     removeSong(query) {
-        query = !query || query.toString().length === 0 ? 0 : query.toString();
+        query = !query || query.length === 0 ? 0 : query;
 
         if (!isNaN(query)) {
             query = parseInt(query);
