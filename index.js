@@ -253,7 +253,8 @@ export default class Music extends ServerModule {
 
         const noticeMsg = msg.channel.send('🔍 `Looking up your request...` 🔍');
 
-        this.join(voiceChannel).catch(err => {
+        const err = await this.join(voiceChannel);
+        if (err) {
             const embed = new MessageEmbed();
 
             switch (err.message.toLowerCase()) {
@@ -290,7 +291,10 @@ export default class Music extends ServerModule {
             }
 
             msg.channel.send(embed);
-        });
+            noticeMsg.then(msg => msg.delete());
+
+            return false;
+        }
 
         const resolver = this.modules.trackResolver;
 
@@ -385,20 +389,20 @@ export default class Music extends ServerModule {
     }
 
     async join(voiceChannel = this.voiceChannel) {
-        if (!voiceChannel || !voiceChannel instanceof Discord.VoiceChannel) throw new Error(`Join method expects a VoiceChannel instance.`);
+        if (!voiceChannel || !voiceChannel instanceof Discord.VoiceChannel) return new Error(`Join method expects a VoiceChannel instance.`);
 
         if (!this.isDamonInVC(voiceChannel)) {
             if (!voiceChannel.guild.me.hasPermission('ADMINISTRATOR')) {
                 if (voiceChannel.full) {
-                    throw new Error('VoiceChannel full');
-
                     this.shutdown.instant();
+
+                    return new Error('VoiceChannel full');
                 }
 
                 if (!voiceChannel.joinable) {
                     this.shutdown.instant();
 
-                    throw new Error('Missing Permissions');
+                    return new Error('Missing Permissions');
                 }
             }
         }
@@ -409,7 +413,7 @@ export default class Music extends ServerModule {
             voiceChannelID: voiceChannel.id
         });
 
-        if (!this.player) throw new Error('No LavaLink Nodes');
+        if (!this.player) return new Error('No LavaLink Nodes');
 
         // Reconnect no matter what
         this.player.then(player => {
@@ -424,6 +428,8 @@ export default class Music extends ServerModule {
         });
 
         this.voiceChannel = voiceChannel;
+
+        return null;
     }
 
     /**
@@ -574,6 +580,8 @@ export default class Music extends ServerModule {
 
             return this.queue.removeOnPosition(query);
         }
+
+        console.log(query);
 
         query = query.toLowerCase();
 
