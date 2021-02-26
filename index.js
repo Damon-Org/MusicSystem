@@ -340,7 +340,7 @@ export default class Music extends ServerModule {
      * @param {boolean} [spam = false]
      */
     async handleData(track, requester, msg, voiceChannel, noticeMsg = null, exception = false, spam = false) {
-        if (noticeMsg) noticeMsg.then(msg => msg.delete());
+        if (noticeMsg) noticeMsg.then(notice => notice.delete());
 
         if (this.shutdown.type == 'leave') {
             this.reset(false);
