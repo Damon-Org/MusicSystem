@@ -58,7 +58,7 @@ export default class Lyrics extends MusicCommand {
         if (title)
             lyric = await this.modules.lyrics.fetch(title);
         else
-            lyric = await this.modules.lyrics.fetch(this.args.join(' '));
+            lyric = await this.modules.lyrics.fetch(this.args[0].join(' '));
 
         if (!lyric) {
             this.reply('Could not find any lyrics for that song.')

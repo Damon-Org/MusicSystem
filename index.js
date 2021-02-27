@@ -581,9 +581,7 @@ export default class Music extends ServerModule {
             return this.queue.removeOnPosition(query);
         }
 
-        console.log(query);
-
-        query = query.toLowerCase();
+        query = query.join(' ').toLowerCase();
 
         const results = [];
         const start = this.queue.start;
