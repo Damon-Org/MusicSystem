@@ -343,7 +343,7 @@ export default class Music extends ServerModule {
      * @param {boolean} [exception = false]
      * @param {boolean} [spam = false]
      */
-    async handleData(track, requester, msg, voiceChannel, noticeMsg = null, exception = false, spam = false) {
+    async handleData(track, requester, msg, voiceChannel, noticeMsg = null, exception = false, spam = true) {
         if (noticeMsg) noticeMsg.then(notice => notice.delete());
 
         if (this.shutdown.type == 'leave') {
@@ -370,10 +370,9 @@ export default class Music extends ServerModule {
             return false;
         }
 
-        if (await this.createQueue(track, requester, msg.channel) && spam) {
-            msg.channel.send(`Playback starting with **${track.title}**`);
-        }
-        return true;
+        msg.channel.send(`Playback starting with **${track.title}**`);
+        
+        return this.createQueue(track, requester, msg.channel);
     }
 
     /**
@@ -597,7 +596,7 @@ export default class Music extends ServerModule {
             }
         }
 
-        if (results.length == 1) return this.queue.removeOnPosition(results[0] - this.queue.maxPrequeue);
+        if (results.length == 1) return this.queue.splice(results[0], 1);
         return null;
     }
 
