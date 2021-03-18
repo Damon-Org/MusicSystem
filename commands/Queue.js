@@ -59,13 +59,6 @@ export default class Queue extends BaseCommand {
             topLimit = maxPrequeue + (pageSize * page) + (pageSize / 2);
         }
         else {
-            if (isNaN(number) || number.includes('.') || number.includes(',')) {
-                this.reply('sorry, I can\'t seem to find any tracks on the page you gave me.')
-                    .then(msg => msg.delete({timeout: 5e3}));
-
-                return true;
-            }
-
             page = parseInt(number);
 
             if (page > 0) {
@@ -87,6 +80,8 @@ export default class Queue extends BaseCommand {
         if (this.music.active()) {
             const length = this.music.queue.length;
             let embedDescription = '';
+
+            const prefix = await this.modules.serverSettings.getPrefix(this.server);
 
             for (let i = bottomLimit; i < topLimit; i++) {
                 if (i == maxPrequeue) {
@@ -131,7 +126,7 @@ export default class Queue extends BaseCommand {
                         .setAuthor('Queue for ' + server.name, server.iconURL)
                         .setColor('#252422')
                         .setDescription(embedDescription)
-                        .setFooter(`You can use ${this.server.prefix}q #number to see other pages of the queue.`);
+                        .setFooter(`You can use ${prefix}q #number to see other pages of the queue.`);
 
                     this.send(richEmbed);
 
@@ -143,7 +138,7 @@ export default class Queue extends BaseCommand {
                 .setAuthor('Queue for ' + server.name, server.iconURL)
                 .setColor('#252422')
                 .setDescription('This page is empty.')
-                .setFooter(`You can use ${this.server.prefix}q #number to see other pages of the queue.`);
+                .setFooter(`You can use ${prefix}q #number to see other pages of the queue.`);
 
             this.send(richEmbed);
 
