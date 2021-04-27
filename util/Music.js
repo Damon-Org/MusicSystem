@@ -85,7 +85,7 @@ export default class MusicUtils {
             } while ((!data || data.tracks.length == 0) && attempt < 3);
 
             if (!data || data.length == 0) {
-                newMsg.channel.send(`${requester}, failed to queue song, perhaps the song is limited in country or age restricted?`)
+                newMsg.channel.send(`${serverMember}, failed to queue song, perhaps the song is limited in country or age restricted?`)
                     .then(msg => msg.delete({timeout: 5e3}));
 
                 return;
@@ -94,7 +94,7 @@ export default class MusicUtils {
             data = new LavaTrack(data.tracks[0]);
 
             if (!voiceChannel.members.has(user.id)) {
-                newMsg.channel.send(`${requester}, you've left your original voicechannel, request ignored.`)
+                newMsg.channel.send(`${serverMember}, you've left your original voicechannel, request ignored.`)
                     .then(msg => msg.delete({timeout: 5e3}));
 
                 return;
