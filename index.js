@@ -104,6 +104,8 @@ export default class Music extends ServerModule {
         if (data.type === 'WebSocketClosedEvent') {
             if (data.code === 4014) return this.reset(true);
 
+            this.log.warn("MUSIC_SYSTEM", "Attempting rejoin with exception:", data);
+
             this.player?.disconnect();
 
             setTimeout(() => {
@@ -223,7 +225,7 @@ export default class Music extends ServerModule {
 
             this.lastPlayer.reactions.removeAll()
             .catch(err => {
-                this.textChannel.send(`Unknown error occured\nThis generated the following error: \`\`\`js\n${err.stack}\`\`\`Contact ${this._m.config.creator} on Discord if this keeps occuring.`);
+                this.textChannel?.send(`Unknown error occured\nThis generated the following error: \`\`\`js\n${err.stack}\`\`\`Contact ${this._m.config.creator} on Discord if this keeps occuring.`);
             });
         }
     }
@@ -371,7 +373,7 @@ export default class Music extends ServerModule {
         }
 
         msg.channel.send(`Playback starting with **${track.title}**`);
-        
+
         return this.createQueue(track, requester, msg.channel);
     }
 
@@ -507,7 +509,7 @@ export default class Music extends ServerModule {
         const activeTrack = this.queue.active();
 
         if (!activeTrack) this.queue.removeOnPosition(1);
-        else if (activeTrack.repeat) this.continueQueue();
+        else if (activeTrack.repeat) return this.continueQueue();
 
         if (this.state !== State.SWITCHING) {
             if (!this.queue.getFromPosition(2)) {
@@ -758,7 +760,7 @@ export default class Music extends ServerModule {
             return;
         }
 
-        this.log.info('MUSIC_SYSTEM', `Finished track: ${currentSong ? currentSong.title : '{ REMOVED SONG }'}`);
+        this.log.verbose('MUSIC_SYSTEM', `Finished track: ${currentSong ? currentSong.title : '{ REMOVED SONG }'}`);
 
         this.playNextTrack();
     }
@@ -772,11 +774,11 @@ export default class Music extends ServerModule {
         if (this.end.type == 'TrackStuckEvent') return clearTimeout(this.trackStuckTimeout);
         if (currentSong) this._m.emit('trackPlayed', currentSong);
 
-        this.log.info('MUSIC_SYSTEM', 'Started track: ' + currentSong ? currentSong.title : '{ REMOVED SONG }');
+        this.log.verbose('MUSIC_SYSTEM', 'Started track: ' + currentSong ? currentSong.title : '{ REMOVED SONG }');
     }
 
     setState(state) {
-        this.log.info('MUSIC_SYSTEM', `Changed MusicSystem state: "${state}"`)
+        this.log.verbose('MUSIC_SYSTEM', `Changed MusicSystem state: "${state}"`)
 
         this.state = state;
     }
