@@ -121,7 +121,7 @@ export default class Music extends ServerModule {
 
         this.log.error('MUSIC_SYSTEM', 'Rejoin failure, unknown event type:', data);
 
-        this.textChannel.send('Unknown connection failure, shutting down...');
+        this.textChannel?.send('Unknown connection failure, shutting down...');
 
         this.reset(true);
     }
@@ -169,7 +169,7 @@ export default class Music extends ServerModule {
                 .setColor(this.songState.color)
                 .setDescription(`Requested by: **${track.requester}**`)
                 .setFooter(this.songState.footer);
-        const newMsg = await this.textChannel.send(richEmbed);
+        const newMsg = await this.textChannel?.send(richEmbed);
 
         const emojis = ['⏮️', '⏸', '⏭', '🔁'];
 
@@ -522,7 +522,7 @@ export default class Music extends ServerModule {
                 }
 
                 this.disableOldPlayer(true);
-                const msg = this.textChannel.send(`Queue has been concluded and the bot will leave in 5 minutes, type the \`restart\` command to requeue your old queue (only if within those same 5 minutes).`);
+                const msg = this.textChannel?.send(`Queue has been concluded and the bot will leave in 5 minutes, type the \`restart\` command to requeue your old queue (only if within those same 5 minutes).`);
                 this.shutdown.delay('leave', 3e5, (msg) => msg.then(msg => { if (!msg.deleted) msg.delete() }), msg);
 
                 return;
@@ -540,7 +540,7 @@ export default class Music extends ServerModule {
 
         const currentSong = this.queue.active();
         if (!currentSong || currentSong.broken) {
-            this.textChannel.send(`No equivalent video could be found on YouTube for **${currentSong ? currentSong.title : '{ REMOVED/UNKNOWN TRACK }'}**`);
+            this.textChannel?.send(`No equivalent video could be found on YouTube for **${currentSong ? currentSong.title : '{ REMOVED/UNKNOWN TRACK }'}**`);
 
             this.playNextTrack();
 
@@ -753,7 +753,7 @@ export default class Music extends ServerModule {
 
         const currentSong = this.queue.active();
         if (end.reason === 'LOAD_FAILED') {
-            this.textChannel.send(`The uploader has not made **${currentSong.title}** available in your country.`);
+            this.textChannel?.send(`The uploader has not made **${currentSong.title}** available in your country.`);
 
             this.playNextTrack();
 
@@ -840,7 +840,7 @@ export default class Music extends ServerModule {
         if (!server || !server.music.active() || !server.music.isDamonInVC(voiceChannel)) return;
 
         if (voiceChannel.members.size == 1 && !server.music.shutdown.type) {
-            const msg = server.music.textChannel.send(`The queue will be destroyed within 5 minutes, rejoin within that time to resume music playback.`);
+            const msg = server.music.textChannel?.send(`The queue will be destroyed within 5 minutes, rejoin within that time to resume music playback.`);
 
             server.music.shutdown.delay('time', 3e5, (msg) => msg.then(msg => { if (!msg.deleted) msg.delete() }), msg);
         }
