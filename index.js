@@ -572,7 +572,7 @@ export default class Music extends ServerModule {
      * @param {string|number} query This can be a string identifying the track or
      */
     removeSong(query) {
-        query = !query || query.length === 0 ? 0 : query;
+        query = !query || query.length === 0 ? 1 : query;
 
         if (!isNaN(query)) {
             query = parseInt(query);
@@ -598,7 +598,7 @@ export default class Music extends ServerModule {
             }
         }
 
-        if (results.length == 1) return this.queue.splice(results[0], 1);
+        if (results.length == 1) return this.queue.splice(results[0], 1)[0];
         return null;
     }
 

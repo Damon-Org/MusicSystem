@@ -38,7 +38,7 @@ export default class Remove extends MusicCommand {
      */
     async run(command) {
         if (this.music.isDamonInVC(this.voiceChannel)) {
-            const [track] = this.music.removeSong(this.args[0]);
+            const track = this.music.removeSong(this.args[0]);
 
             if (track) {
                 this.reply(`removed **${track.title}** from the queue.`);
