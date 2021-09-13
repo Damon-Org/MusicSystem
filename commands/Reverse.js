@@ -27,7 +27,7 @@ export default class Reverse extends MusicCommand {
     async run(command) {
         if (!this.music.isDamonInVC(this.voiceChannel)) {
             this.reply('you aren\'t in my voice channel! 😣')
-                .then(msg => msg.delete({timeout: 5e3}));
+                .then(msg => setTimeout(msg.delete, 5e3));
 
             return true;
         }

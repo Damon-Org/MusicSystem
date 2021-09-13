@@ -1,10 +1,11 @@
 import { OnMusicPlayerAction } from './structures/music/Action.js'
-import Constants, { PlayTrackOptions, State, SystemReset } from './util/Constants.js'
-import Discord, { MessageEmbed } from 'discord.js'
+import Constants, { PlayerActionRow, PlayTrackOptions, State, SystemReset } from './util/Constants.js'
+import Discord, { ButtonInteraction, MessageEmbed } from 'discord.js'
 import MusicUtils from './util/Music.js'
 import Queue from './structures/music/Queue.js'
 import ServerModule from './structures/modules/ServerModule.js'
 import ShutdownManager from './util/ShutdownManager.js'
+import ShoukakuConstants from 'shoukaku/src/Constants.js'
 
 export default class Music extends ServerModule {
     queue = new Queue();
@@ -27,9 +28,14 @@ export default class Music extends ServerModule {
             requires: [
                 'api',
                 'eventExtender',
-                'lavalink'
+                'lavalink',
+                'trackResolver'
             ],
             events: [
+                {
+                    name: 'interactionCreate',
+                    call: '_onInteraction'
+                },
                 {
                     name: 'voiceJoin',
                     call: '_voiceJoin'
@@ -41,7 +47,7 @@ export default class Music extends ServerModule {
             ]
         });
 
-        Object.defineProperty(this, 'onMusicPlayerAction', { value: OnMusicPlayerAction.bind(this) });
+        this.onMusicPlayerAction = OnMusicPlayerAction;
     }
 
     get constants() {
@@ -56,6 +62,8 @@ export default class Music extends ServerModule {
         try {
             return this.lava.getNode();
         } catch (e) {
+            this.log.error('MUSIC_SYSTEM', 'Failed to get lavalink node:', e);
+
             return null;
         }
     }
@@ -66,6 +74,11 @@ export default class Music extends ServerModule {
 
     set state(new_value) {
         this._state = State[new_value];
+    }
+
+    cleanup() {
+        for (const server of this.servers.values())
+            server.music.reset();
     }
 
     init() {
@@ -106,7 +119,15 @@ export default class Music extends ServerModule {
 
             this.log.warn("MUSIC_SYSTEM", "Attempting rejoin with exception:", data);
 
-            this.player?.disconnect();
+            this.player.connection.reconnect()
+                .then(async () => {
+                    this.log.verbose('MUSIC_SYSTEM', 'Resuming playback...');
+                    this.setState('RESUMING');
+
+                    this.player.resume({ noReplace: false });
+                });
+            /*
+            this.player?.connection.disconnect();
 
             setTimeout(() => {
                 this.setState('SWITCHING');
@@ -115,6 +136,7 @@ export default class Music extends ServerModule {
 
                 this.playNextTrack();
             }, 150);
+            */
 
             return;
         }
@@ -124,6 +146,17 @@ export default class Music extends ServerModule {
         this.textChannel?.send('Unknown connection failure, shutting down...');
 
         this.reset(true);
+    }
+
+    bindPlayer(player) {
+        player.on('closed', this.attemptRejoin.bind(this));
+        player.on('nodeDisconnect', this.attemptRejoin.bind(this));
+
+        player.on('start', this.soundStart.bind(this));
+        player.on('error', this.nodeError.bind(this));
+        player.on('end', this.soundEnd.bind(this));
+
+        this.player = player;
     }
 
     /**
@@ -144,7 +177,7 @@ export default class Music extends ServerModule {
 
         const track = this.queue.active();
         if (!track) return;
-        if (this.lastPlayer && this.textChannel.lastMessageID == this.lastPlayer.id) {
+        if (this.lastPlayer && this.textChannel.lastMessageId == this.lastPlayer.id) {
             this._m.embedUtils.editEmbed(this.lastPlayer, {
                 author: { name: track.full_author },
                 color: this.songState.color,
@@ -160,26 +193,26 @@ export default class Music extends ServerModule {
         }
 
         this.disableOldPlayer(true);
-        if (this.reactionListener) this.reactionListener.cleanup();
+        // if (this.reactionListener) this.reactionListener.cleanup();
 
-        const richEmbed = new MessageEmbed()
+        const embed = new MessageEmbed()
                 .setAuthor(track.author)
                 .setTitle(track.title)
                 .setThumbnail(track.image ? track.image : null)
                 .setColor(this.songState.color)
                 .setDescription(`Requested by: **${track.requester}**`)
                 .setFooter(this.songState.footer);
-        const newMsg = await this.textChannel?.send(richEmbed);
+        const newMsg = await this.textChannel?.send({ embeds: [ embed ], components: [ PlayerActionRow ]});
 
-        const emojis = ['⏮️', '⏸', '⏭', '🔁'];
+        //const emojis = ['⏮️', '⏸', '⏭', '🔁'];
 
         this.lastPlayer = newMsg;
 
-        const reactionInterface = this.modules.reactionInterface;
-        this.reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'toggle', null, -1);
+        //const reactionInterface = this.modules.reactionInterface;
+        //this.reactionListener = reactionInterface.createReactionListener(newMsg, emojis, 'toggle', null, -1);
 
-        this.reactionListener.on('timeout', this.shutdown.instant.bind(this.shutdown));
-        this.reactionListener.on('reaction', this.onMusicPlayerAction);
+        //this.reactionListener.on('timeout', this.shutdown.instant.bind(this.shutdown));
+        //this.reactionListener.on('reaction', this.onMusicPlayerAction);
     }
 
     /**
@@ -218,10 +251,11 @@ export default class Music extends ServerModule {
      * @param {boolean} [force=false] If the old player should be forcefully disabled no matter what
      */
     disableOldPlayer(force = false) {
-        if (this.lastPlayer && !this.lastPlayer.deleted && (this.textChannel.lastMessageID != this.lastPlayer.id || force)) {
-            this._m.embedUtils.editEmbed(this.lastPlayer, {
+        if (this.lastPlayer && !this.lastPlayer.deleted && (this.textChannel.lastMessageId != this.lastPlayer.id || force)) {
+            const embed = this._m.embedUtils.editEmbed(this.lastPlayer, {
                 color: '#4f545c'
-            });
+            }, false);
+            this.lastPlayer.edit({ embeds: [ embed ], components: [] });
 
             this.lastPlayer.reactions.removeAll()
             .catch(err => {
@@ -237,7 +271,8 @@ export default class Music extends ServerModule {
         if (this.player) {
             this.player.removeAllListeners();
 
-            this.player.disconnect();
+            this.player.stopTrack();
+            this.player.connection.disconnect();
         }
         this.player = null;
         this.voiceChannel = null;
@@ -292,7 +327,7 @@ export default class Music extends ServerModule {
                 }
             }
 
-            msg.channel.send(embed);
+            msg.channel.send({ embeds: [ embed ]});
             noticeMsg.then(msg => msg.delete());
 
             return false;
@@ -316,7 +351,7 @@ export default class Music extends ServerModule {
                 .setDescription(`No results returned for ${args.join(' ')}.`)
                 .setColor('#ed4337');
 
-            msg.channel.send(embed);
+            msg.channel.send({ embeds: [ embed ]});
 
             return true;
         }
@@ -356,10 +391,12 @@ export default class Music extends ServerModule {
             if (this.isDamonInVC(voiceChannel) || !spam) {
                 if (!this.addToQueue(track, requester, exception)) {
                     msg.channel.send(`The queue is full, this server is limited to ${this.queue.maxQueue - this.queue.maxPrequeue} tracks.`)
-                        .then(msg => msg.delete({timeout: 5e3}));
+                        .then(msg => setTimeout(msg.delete, 5e3));
 
                     return false;
                 }
+
+                this.setState('PLAYING');
 
                 if (spam) msg.channel.send(exception ? `Added song *next up* **${track.title}**` : `Added song **${track.title}**`);
 
@@ -371,6 +408,8 @@ export default class Music extends ServerModule {
 
             return false;
         }
+
+        this.setState('PLAYING');
 
         msg.channel.send(`Playback starting with **${track.title}**`);
 
@@ -393,7 +432,7 @@ export default class Music extends ServerModule {
         if (!voiceChannel || !voiceChannel instanceof Discord.VoiceChannel) return new Error(`Join method expects a VoiceChannel instance.`);
 
         if (!this.isDamonInVC(voiceChannel)) {
-            if (!voiceChannel.guild.me.hasPermission('ADMINISTRATOR')) {
+            if (!voiceChannel.guild.me.permissions.has('ADMINISTRATOR')) {
                 if (voiceChannel.full) {
                     this.shutdown.instant();
 
@@ -407,26 +446,19 @@ export default class Music extends ServerModule {
                 }
             }
         }
+        else return null;
 
         this.player?.removeAllListeners();
-        this.player = this.node?.joinVoiceChannel({
-            guildID: voiceChannel.guild.id,
-            voiceChannelID: voiceChannel.id
+        this.player = this.node?.joinChannel({
+            channelId: voiceChannel.id,
+            guildId: voiceChannel.guild.id,
+            shardId: voiceChannel.guild.shardId
         });
 
         if (!this.player) return new Error('No LavaLink Nodes');
 
         // Reconnect no matter what
-        this.player.then(player => {
-            player.on('closed', this.attemptRejoin.bind(this));
-            player.on('nodeDisconnect', this.attemptRejoin.bind(this));
-
-            player.on('start', this.soundStart.bind(this));
-            player.on('error', this.nodeError.bind(this));
-            player.on('end', this.soundEnd.bind(this));
-
-            this.player = player;
-        });
+        this.player.then(this.bindPlayer.bind(this));
 
         this.voiceChannel = voiceChannel;
 
@@ -462,7 +494,12 @@ export default class Music extends ServerModule {
      * @returns {boolean} True on success, false otherwise
      */
     pauseToggle() {
-        return this.paused ? this.resumePlayback() : this.pausePlayback();
+        if (this.paused)
+            this.resumePlayback()
+        else
+            this.pausePlayback()
+
+        return this.paused;
     }
 
     /**
@@ -552,7 +589,7 @@ export default class Music extends ServerModule {
         //this.soundPrepare();
 
         try {
-            await this.player.playTrack(currentSong.track, { noReplace: false });
+            this.player.playTrack(currentSong.track, { noReplace: false });
         } catch (e) {
             this.log.warn('MUSIC_SYSTEM', 'Failed to playTrack, the instance might be broken:', currentSong.track ?? currentSong);
 
@@ -561,7 +598,7 @@ export default class Music extends ServerModule {
             return false;
         }
 
-        await this.player.setVolume(this.volume);
+        this.setVolume(this.volume, true);
 
         this.cacheSongIfNeeded();
 
@@ -687,6 +724,30 @@ export default class Music extends ServerModule {
         return false;
     }
 
+    setState(state) {
+        if (this.state !== State[state])
+            this.log.verbose('MUSIC_SYSTEM', `Changed MusicSystem state: "${state}"`);
+
+        this.state = state;
+    }
+
+    /**
+     * Sets the volume on the active stream
+     * @param {number} volume The new volume level to play music at
+     * @param {boolean} force If the volume should be set no matter what
+     * @returns {boolean} False if unchanged, true otherwise
+     */
+    setVolume(volume, force = false) {
+        if (this.volume == volume && !force) {
+            return false;
+        }
+
+        this.player.setVolume(volume / 100);
+        this.volume = volume;
+
+        return true;
+    }
+
     /**
      * @param {number} queueNumber A number that exists in queue
      * @returns {boolean} False if invalid queueNumber was given, true on success
@@ -717,28 +778,16 @@ export default class Music extends ServerModule {
     }
 
     /**
-     * Sets the volume on the active stream
-     * @param {number} volume
-     * @returns {boolean} False if unchanged, true otherwise
-     */
-    setVolume(volume) {
-        if (this.volume == volume) {
-            return false;
-        }
-
-        this.player.setVolume(volume);
-        this.volume = volume;
-
-        return true;
-    }
-
-    /**
      * @param {Object} [end={}] By default an empty object to prevent if statements errrors.
      */
     soundEnd(end = {}) {
+        if (this.state === State.RESUMING) return this.log.verbose('MUSIC_SYSTEM', 'Ignoring soundEnd as playBack is being resumed.');
+
         this.end = end;
 
         if (end.type === 'TrackStuckEvent') {
+            this.log.warn('MUSIC_SYSTEM', 'Current track fired a TrackStuckEvent!', end);
+
             clearTimeout(this.trackStuckTimeout);
             this.trackStuckTimeout = setTimeout(async () => {
                 if (!await this.player.stopTrack()) this.soundEnd();
@@ -769,18 +818,14 @@ export default class Music extends ServerModule {
      * Fired when Lavalink successfully begins playing a track.
      */
     soundStart() {
+        this.setState('PLAYING');
+
         const currentSong = this.queue.active();
 
         if (this.end.type == 'TrackStuckEvent') return clearTimeout(this.trackStuckTimeout);
         if (currentSong) this._m.emit('trackPlayed', currentSong);
 
         this.log.verbose('MUSIC_SYSTEM', 'Started track: ' + currentSong ? currentSong.title : '{ REMOVED SONG }');
-    }
-
-    setState(state) {
-        this.log.verbose('MUSIC_SYSTEM', `Changed MusicSystem state: "${state}"`)
-
-        this.state = state;
     }
 
     /**
@@ -807,6 +852,23 @@ export default class Music extends ServerModule {
         if (this.paused) {
             this.songState.footer = `Paused | ${this.songState.footer}`;
             this.songState.color = '#dd153d';
+        }
+    }
+
+    /**
+     * 
+     * @param {ButtonInteraction} interaction 
+     */
+    async _onInteraction(interaction) {
+        if (!interaction.isButton()) return;
+
+        if (this.server == -1) {
+            const server = this.servers.get(interaction.guildId, false);
+            if (!server || !server.music.active()) return;
+
+            OnMusicPlayerAction.call(server.music, interaction);
+
+            return;
         }
     }
 

@@ -37,22 +37,22 @@ export default class MusicUtils {
             searchFor
         );
         if (!await choice.genDescription()) {
-            const richEmbed = new MessageEmbed()
+            const embed = new MessageEmbed()
                 .setTitle('I could not find the song you requested')
                 .setDescription(`No results returned for ${searchFor}.`)
                 .setColor('#ed4337');
 
-            msgObj.channel.send(richEmbed);
+            msgObj.channel.send({ embeds: [ embed ] });
 
             return;
         }
 
-        const richEmbed = new MessageEmbed()
+        const embed = new MessageEmbed()
             .setColor('#252422')
             .setDescription(choice.description)
             .setFooter('Choose a song by clicking the matching reaction below');
 
-        const newMsg = await msgObj.channel.send(richEmbed);
+        const newMsg = await msgObj.channel.send({ embeds: [ embed ] });
 
         const emojis = ['\u0031\u20E3','\u0032\u20E3','\u0033\u20E3','\u0034\u20E3','\u0035\u20E3', '🚫'];
 
@@ -64,13 +64,12 @@ export default class MusicUtils {
             newMsg.edit('Choice Request timed out.');
         });
         reactionListener.on('reaction', async (emoji, user) => {
-            if (serverMember.user.id !== user.id || !voiceChannel) return;
+            if (serverMember.user.id != user.id || !voiceChannel) return;
             reactionListener.cleanup();
 
             newMsg.delete();
 
             const index = emojis.indexOf(emoji);
-
             if (index > 4) return;
 
             const videoId = choice.ids[index];
@@ -85,8 +84,8 @@ export default class MusicUtils {
             } while ((!data || data.tracks.length == 0) && attempt < 3);
 
             if (!data || data.length == 0) {
-                newMsg.channel.send(`${serverMember}, failed to queue song, perhaps the song is limited in country or age restricted?`)
-                    .then(msg => msg.delete({timeout: 5e3}));
+                const msg = await newMsg.channel.send(`${serverMember}, failed to queue song, perhaps the song is limited in country or age restricted?`);
+                setTimeout(msg.delete, 5e3);
 
                 return;
             }
@@ -94,8 +93,8 @@ export default class MusicUtils {
             data = new LavaTrack(data.tracks[0]);
 
             if (!voiceChannel.members.has(user.id)) {
-                newMsg.channel.send(`${serverMember}, you've left your original voicechannel, request ignored.`)
-                    .then(msg => msg.delete({timeout: 5e3}));
+                const msg = await newMsg.channel.send(`${serverMember}, you've left your original voicechannel, request ignored.`);
+                setTimeout(msg.delete, 5e3);
 
                 return;
             }

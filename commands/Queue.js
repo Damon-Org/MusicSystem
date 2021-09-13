@@ -43,7 +43,7 @@ export default class Queue extends BaseCommand {
 
         if (!this.music.active()) {
             this.reply('No music is playing currently.')
-                .then(msg => msg.delete({timeout: 5e3}));
+                .then(msg => setTimeout(msg.delete, 5e3));
 
             return;
         }
@@ -122,31 +122,31 @@ export default class Queue extends BaseCommand {
                 }
 
                 if (i == (topLimit - 1) || i == (length - 2)) {
-                    const richEmbed = new this.Discord.MessageEmbed()
+                    const embed = new this.Discord.MessageEmbed()
                         .setAuthor('Queue for ' + server.name, server.iconURL)
                         .setColor('#252422')
                         .setDescription(embedDescription)
                         .setFooter(`You can use ${prefix}q #number to see other pages of the queue.`);
 
-                    this.send(richEmbed);
+                    this.sendEmbed(embed);
 
                     return true;
                 }
             }
 
-            const richEmbed = new this.Discord.MessageEmbed()
+            const embed = new this.Discord.MessageEmbed()
                 .setAuthor('Queue for ' + server.name, server.iconURL)
                 .setColor('#252422')
                 .setDescription('This page is empty.')
                 .setFooter(`You can use ${prefix}q #number to see other pages of the queue.`);
 
-            this.send(richEmbed);
+            this.sendEmbed(embed);
 
             return true;
         }
 
         this.reply('no music is playing currently.')
-            .then(msg => msg.delete({timeout: 5e3}));
+            .then(msg => setTimeout(msg.delete, 5e3));
 
         return true;
     }

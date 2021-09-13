@@ -1,4 +1,5 @@
-import MusicCommand from '../../../structures/commands/MusicCommand.js'
+import MusicCommand from '@/src/structures/commands/MusicCommand.js'
+import Modules from '@/src/Modules.js'
 
 export default class Equalizer extends MusicCommand {
     /**
@@ -29,7 +30,7 @@ export default class Equalizer extends MusicCommand {
             example: 'eq deep'
         });
 
-        const { EqualizerBands } = this._m.modules.music.constants;
+        const { EqualizerBands } = Modules.music.constants;
         this.eqBands = EqualizerBands;
     }
 
@@ -58,7 +59,7 @@ export default class Equalizer extends MusicCommand {
         }
 
         this.reply('you aren\'t in my voice channel! 😣')
-            .then(msg => msg.delete({timeout: 5e3}));
+            .then(msg => setTimeout(msg.delete, 5e3));
 
         return true;
     }

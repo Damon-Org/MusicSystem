@@ -34,7 +34,7 @@ export default class Resume extends MusicCommand {
         }
 
         this.reply('you aren\'t in my voice channel! 😣')
-            .then(msg => msg.delete({timeout: 5e3}));
+            .then(msg => setTimeout(msg.delete, 5e3));
 
         return true;
     }

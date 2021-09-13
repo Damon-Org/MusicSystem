@@ -47,7 +47,7 @@ export default class Lyrics extends MusicCommand {
         if (this.args.length == 0) {
             if (active === null) {
                 this.reply('There is no active song playing at the moment. Please enter a search query instead.')
-                    .then(msg => msg.delete({timeout: 5e3}));
+                    .then(msg => setTimeout(msg.delete, 5e3));
 
                 return false;
             }
@@ -62,7 +62,7 @@ export default class Lyrics extends MusicCommand {
 
         if (!lyric) {
             this.reply('Could not find any lyrics for that song.')
-                .then(msg => msg.delete({timeout: 5e3}));
+                .then(msg => setTimeout(msg.delete, 5e3));
 
             return false;
         }

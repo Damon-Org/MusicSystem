@@ -47,13 +47,13 @@ export default class Remove extends MusicCommand {
             }
 
             this.reply('invalid track title or invalid queue number.')
-                .then(msg => msg.delete({timeout: 5e3}));
+                .then(msg => setTimeout(msg.delete, 5e3));
 
             return true;
         }
 
         this.reply('you aren\'t in my voice channel! 😣')
-            .then(msg => msg.delete({timeout: 5e3}));
+            .then(msg => setTimeout(msg.delete, 5e3));
 
         return true;
     }

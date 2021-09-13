@@ -40,21 +40,21 @@ export default class Volume extends MusicCommand {
 
             if (!volume) {
                 this.reply('please give a value, command format: `volume #number`.')
-                    .then(msg => msg.delete({timeout: 5e3}));
+                    .then(msg => setTimeout(msg.delete, 5e3));
 
                 return true;
             }
 
             /*if (isNaN(volume) || volume.includes(',')) {
                 this.reply('invalid volume level, make sure you give a number and that there\'s no `,` in that number.')
-                    .then(msg => msg.delete({timeout: 5e3}));
+                    .then(msg => setTimeout(msg.delete, 5e3));
 
                 return true;
             }*/
 
             if (volume < 5 || volume > 200) {
                 this.reply('invalid volume level, please give a value between 5 and 200')
-                    .then(msg => msg.delete({timeout: 5e3}));
+                    .then(msg => setTimeout(msg.delete, 5e3));
 
                 return true;
             }
@@ -71,7 +71,7 @@ export default class Volume extends MusicCommand {
         }
 
         this.reply('you aren\'t in my voice channel! 😣')
-            .then(msg => msg.delete({timeout: 5e3}));
+            .then(msg => setTimeout(msg.delete, 5e3));
 
         return true;
     }

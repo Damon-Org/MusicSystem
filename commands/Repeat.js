@@ -28,7 +28,7 @@ export default class Repeat extends MusicCommand {
         if (this.music.isDamonInVC(this.voiceChannel)) {
             if (this.music.queue.active() == null) {
                 this.reply('the currently playing song has been removed, thus it cannot be put in repeat.')
-                    .then(msg => msg.delete({timeout: 5e3}));
+                    .then(msg => setTimeout(msg.delete, 5e3));
 
                 return true;
             }
@@ -45,7 +45,7 @@ export default class Repeat extends MusicCommand {
         }
 
         this.reply('you aren\'t in my voice channel! 😣')
-            .then(msg => msg.delete({timeout: 5e3}));
+            .then(msg => setTimeout(msg.delete, 5e3));
 
         return true;
     }

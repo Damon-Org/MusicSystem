@@ -30,7 +30,7 @@ export default class PlayTime extends BaseCommand {
     async run(command) {
         if (!this.server.music.active()) {
             this.reply('No music is playing currently.')
-                .then(msg => msg.delete({timeout: 5e3}));
+                .then(msg => setTimeout(msg.delete, 5e3));
 
             return true;
         }

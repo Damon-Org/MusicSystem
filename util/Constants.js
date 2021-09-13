@@ -1,4 +1,29 @@
+import { MessageActionRow, MessageButton } from 'discord.js';
 import EqBand from '../structures/equalizer/Band.js'
+
+const PlayerActions = [
+    new MessageButton()
+        .setCustomId('previous')
+        .setLabel('Previous')
+        .setStyle('PRIMARY')
+        .setEmoji('⏮️'),
+    new MessageButton()
+        .setCustomId('play_pause')
+        .setLabel('Play / Pause')
+        .setStyle('PRIMARY')
+        .setEmoji('⏸'),
+    new MessageButton()
+        .setCustomId('next')
+        .setLabel('Skip')
+        .setStyle('PRIMARY')
+        .setEmoji('⏭'),
+    new MessageButton()
+        .setCustomId('repeat')
+        .setLabel('Repeat / Repeat Playlist')
+        .setStyle('PRIMARY')
+        .setEmoji('🔁')
+];
+export const PlayerActionRow = new MessageActionRow().addComponents(PlayerActions);
 
 export const PlayTrackOptions = {
     noReplace: false
@@ -9,7 +34,8 @@ export const State = {
     PROCESSING: 2,
     PLAYING: 3,
     SWITCHING: 4,
-    ENDING: 5
+    ENDING: 5,
+    RESUMING: 6
 };
 
 export const SystemReset = {

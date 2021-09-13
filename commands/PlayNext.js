@@ -38,7 +38,7 @@ export default class PlayNext extends MusicCommand {
     async run(command) {
         if (this.args.length == 0) {
             this.reply('I can\'t search for nothing... Please give me something to search for.')
-                .then(msg => msg.delete({timeout: 5e3}));
+                .then(msg => setTimeout(msg.delete, 5e3));
 
             return false;
         }
