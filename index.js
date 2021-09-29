@@ -81,7 +81,11 @@ export default class Music extends ServerModule {
             server.music.reset();
     }
 
-    init() {
+    async init() {
+        Object.assign(this, {
+            MusicCommand: (await import('./structures/commands/MusicCommand.js')).default
+        });
+
         this.modules.commandRegistrar.registerCommands('Music', import.meta.url);
 
         return true;
@@ -856,8 +860,8 @@ export default class Music extends ServerModule {
     }
 
     /**
-     * 
-     * @param {ButtonInteraction} interaction 
+     *
+     * @param {ButtonInteraction} interaction
      */
     async _onInteraction(interaction) {
         if (!interaction.isButton()) return;
