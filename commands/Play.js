@@ -1,6 +1,6 @@
-import MusicCommand from '../../../structures/commands/MusicCommand.js'
+import Modules from '@/src/Modules.js'
 
-export default class Play extends MusicCommand {
+export default class Play extends Modules.music.MusicCommand {
     /**
      * @param {string} category
      * @param {Array<string>} args
@@ -32,9 +32,9 @@ export default class Play extends MusicCommand {
     }
 
     /**
-     * @param {string} command string representing what triggered the command
+     * @param {string} trigger string representing what triggered the command
      */
-    async run(command) {
+    run(trigger) {
         if (this.args.length == 0) {
             this.reply('I can\'t search for nothing... Please give me something to search for.')
                 .then(msg => setTimeout(msg.delete, 5e3));

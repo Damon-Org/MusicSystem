@@ -1,14 +1,14 @@
 import { MessageEmbed } from 'discord.js'
 
-import MusicCommand from '../../../structures/commands/MusicCommand.js'
+import Modules from '@/src/Modules.js'
 
-export default class Lyrics extends MusicCommand {
+export default class Lyrics extends Modules.music.MusicCommand {
     /**
      * @param {string} category
-     * @param {Array<*>} args
+     * @param {Main} main
      */
-    constructor(category, ...args) {
-        super(...args);
+    constructor(category, main) {
+        super(main);
 
         this.register(Lyrics, {
             disabled: true,
@@ -36,9 +36,9 @@ export default class Lyrics extends MusicCommand {
     }
 
     /**
-     * @param {string} command string representing what triggered the command
+     * @param {string} trigger string representing what triggered the command
      */
-    async run(command) {
+    async run(trigger) {
         const active = this.music.queue.active();
 
         let title = null;

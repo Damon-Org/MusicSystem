@@ -1,6 +1,6 @@
-import MusicCommand from '../../../structures/commands/MusicCommand.js'
+import Modules from '@/src/Modules.js'
 
-export default class Volume extends MusicCommand {
+export default class Volume extends Modules.music.MusicCommand {
     /**
      * @param {string} category
      * @param {Main} main
@@ -32,9 +32,9 @@ export default class Volume extends MusicCommand {
     }
 
     /**
-     * @param {string} command string representing what triggered the command
+     * @param {string} trigger string representing what triggered the command
      */
-    async run(command) {
+    run(trigger) {
         if (this.music.isDamonInVC(this.voiceChannel)) {
             const volume = this.args[0];
 

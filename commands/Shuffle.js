@@ -1,13 +1,13 @@
-import MusicCommand from '../../../structures/commands/MusicCommand.js'
+import Modules from '@/src/Modules.js'
 import { State } from '../util/Constants.js'
 
-export default class Shuffle extends MusicCommand {
+export default class Shuffle extends Modules.music.MusicCommand {
     /**
-     * @param {String} category
-     * @param {Array<*>} args
+     * @param {string} category
+     * @param {Main} main
      */
-    constructor(category, ...args) {
-        super(...args);
+    constructor(category, main) {
+        super(main);
 
         this.register(Shuffle, {
             category: category,
@@ -23,9 +23,9 @@ export default class Shuffle extends MusicCommand {
     }
 
     /**
-     * @param {String} command string representing what triggered the command
+     * @param {string} trigger string representing what triggered the command
      */
-    async run(command) {
+    run(trigger) {
         if (!this.music.isDamonInVC(this.voiceChannel)) {
             this.reply('you aren\'t in my voice channel! 😣')
                 .then(msg => setTimeout(msg.delete, 5e3));

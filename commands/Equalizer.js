@@ -1,13 +1,12 @@
-import MusicCommand from '@/src/structures/commands/MusicCommand.js'
 import Modules from '@/src/Modules.js'
 
-export default class Equalizer extends MusicCommand {
+export default class Equalizer extends Modules.music.MusicCommand {
     /**
      * @param {string} category
-     * @param {Array<*>} args
+     * @param {Main} main
      */
-    constructor(category, ...args) {
-        super(...args);
+    constructor(category, main) {
+        super(main);
 
         this.register(Equalizer, {
             category: category,
@@ -24,7 +23,7 @@ export default class Equalizer extends MusicCommand {
                     name: 'preset',
                     description: 'A preset name.',
                     type: 'string',
-                    required: true
+                    default: null
                 }
             ],
             example: 'eq deep'
@@ -35,9 +34,9 @@ export default class Equalizer extends MusicCommand {
     }
 
     /**
-     * @param {string} command string representing what triggered the command
+     * @param {string} trigger string representing what triggered the command
      */
-    async run(command) {
+    run(trigger) {
         if (this.music.isDamonInVC(this.voiceChannel) && this.music.active()) {
             const preset = this.eqBands[this.args[0]];
 

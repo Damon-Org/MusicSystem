@@ -1,13 +1,13 @@
-import BaseCommand from '../../../structures/commands/BaseCommand.js'
+import Modules from '@/src/Modules.js'
 import humanReadableTime from 'humanize-duration'
 
-export default class PlayTime extends BaseCommand {
+export default class PlayTime extends Modules.commandRegistrar.BaseCommand {
     /**
-     * @param {String} category
-     * @param {Array<*>} args
+     * @param {string} category
+     * @param {Main} main
      */
-    constructor(category, ...args) {
-        super(...args);
+    constructor(category, main) {
+        super(main);
 
         this.register(PlayTime, {
             category: category,
@@ -25,9 +25,9 @@ export default class PlayTime extends BaseCommand {
     }
 
     /**
-     * @param {String} command string representing what triggered the command
+     * @param {string} trigger string representing what triggered the command
      */
-    async run(command) {
+    run(trigger) {
         if (!this.server.music.active()) {
             this.reply('No music is playing currently.')
                 .then(msg => setTimeout(msg.delete, 5e3));

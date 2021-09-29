@@ -1,12 +1,12 @@
-import MusicCommand from '../../../structures/commands/MusicCommand.js'
+import Modules from '@/src/Modules.js'
 
-export default class Skip extends MusicCommand {
+export default class Skip extends Modules.music.MusicCommand {
     /**
-     * @param {String} category
-     * @param {Array<*>} args
+     * @param {string} category
+     * @param {Main} main
      */
-    constructor(category, ...args) {
-        super(...args);
+    constructor(category, main) {
+        super(main);
 
         this.register(Skip, {
             category: category,
@@ -25,9 +25,9 @@ export default class Skip extends MusicCommand {
     }
 
     /**
-     * @param {String} command string representing what triggered the command
+     * @param {string} trigger string representing what triggered the command
      */
-    async run(command) {
+    async run(trigger) {
         if (this.music.isDamonInVC(this.voiceChannel)) {
             this.msgObj.react('⏭');
 
