@@ -42,6 +42,7 @@ export const SystemReset = {
     end: {},
     lastPlayer: null,
     paused: false,
+    position: 0,
     startTime: 0,
     textChannel: null,
     volume: 30

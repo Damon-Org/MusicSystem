@@ -6,6 +6,7 @@ import Queue from './structures/music/Queue.js'
 import ServerModule from './structures/modules/ServerModule.js'
 import ShutdownManager from './util/ShutdownManager.js'
 import ShoukakuConstants from 'shoukaku/src/Constants.js'
+import { delay } from '@/src/util/Util.js'
 
 export default class Music extends ServerModule {
     queue = new Queue();
@@ -117,19 +118,32 @@ export default class Music extends ServerModule {
         return this.queue.add(track);
     }
 
-    attemptRejoin(data = {}) {
+    async attemptRejoin(data = {}) {
         if (data.type === 'WebSocketClosedEvent') {
             if (data.code === 4014) return this.reset(true);
 
             this.log.warn("MUSIC_SYSTEM", "Attempting rejoin with exception:", data);
 
-            this.player.connection.reconnect()
-                .then(async () => {
-                    this.log.verbose('MUSIC_SYSTEM', 'Resuming playback...');
-                    this.setState('RESUMING');
+            // await this.player.connection.reconnect();
 
-                    this.player.resume({ noReplace: false });
-                });
+            this.log.verbose('MUSIC_SYSTEM', 'Resuming playback...');
+
+            this.player?.connection.disconnect();
+
+            await delay(150);
+
+            try {
+                this.join();
+
+                this.setState('RESUMING');
+
+                this.continueQueue();
+            } catch (error) {
+                this.log.error('MUSIC_SYSTEM', 'Attempt Rejoin error:', error);
+
+                this.reset(true);
+            }
+
             /*
             this.player?.connection.disconnect();
 
@@ -159,6 +173,7 @@ export default class Music extends ServerModule {
         player.on('start', this.soundStart.bind(this));
         player.on('error', this.nodeError.bind(this));
         player.on('end', this.soundEnd.bind(this));
+        player.on('update', this.playerUpdate.bind(this));
 
         this.player = player;
     }
@@ -240,6 +255,8 @@ export default class Music extends ServerModule {
      * @returns {boolean} True if no problem occured.
      */
     async continueQueue() {
+        if (this.state !== State.RESUMING)
+            this.position = 0;
         this.setState('PLAYING');
 
         if (await this.playTrack()) {
@@ -294,7 +311,7 @@ export default class Music extends ServerModule {
 
         const noticeMsg = msg.channel.send('🔍 `Looking up your request...` 🔍');
 
-        const err = await this.join(voiceChannel);
+        const err = this.join(voiceChannel);
         if (err) {
             const embed = new MessageEmbed();
 
@@ -432,7 +449,7 @@ export default class Music extends ServerModule {
         this.log.error('MUSIC_SYSTEM', 'Node encountered an error:', err);
     }
 
-    async join(voiceChannel = this.voiceChannel) {
+    join(voiceChannel = this.voiceChannel) {
         if (!voiceChannel || !voiceChannel instanceof Discord.VoiceChannel) return new Error(`Join method expects a VoiceChannel instance.`);
 
         if (!this.isDamonInVC(voiceChannel)) {
@@ -542,6 +559,11 @@ export default class Music extends ServerModule {
         return true;
     }
 
+    playerUpdate(data) {
+        if (data.op === 'playerUpdate')
+            this.position = data.state.position;
+    }
+
     playPreviousTrack() {
         return this.skipTo(-1);
     }
@@ -590,10 +612,8 @@ export default class Music extends ServerModule {
 
         await this.cacheSongIfNeeded(currentSong);
 
-        //this.soundPrepare();
-
         try {
-            this.player.playTrack(currentSong.track, { noReplace: false });
+            this.player.playTrack(currentSong.track, { noReplace: false, startTime: this.position });
         } catch (e) {
             this.log.warn('MUSIC_SYSTEM', 'Failed to playTrack, the instance might be broken:', currentSong.track ?? currentSong);
 
