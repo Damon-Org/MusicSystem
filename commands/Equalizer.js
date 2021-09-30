@@ -1,4 +1,5 @@
 import Modules from '@/src/Modules.js'
+import { MessageEmbed } from 'discord.js'
 
 export default class Equalizer extends Modules.music.MusicCommand {
     /**
@@ -41,11 +42,11 @@ export default class Equalizer extends Modules.music.MusicCommand {
             const preset = this.eqBands[this.args[0]];
 
             if (!preset) {
-                const embed = new this.Discord.MessageEmbed()
+                const embed = new MessageEmbed()
                     .setTitle('Invalid Equalizer Preset')
                     .setDescription('Choose one of the following:\n```- bass\n- xbass\n- deep\n- flat/normal\n- r&b\n- rock\n- treble\n- vocal```');
 
-                this.reply(embed);
+                this.reply({ embeds: [ embed ]});
 
                 return true;
             }
