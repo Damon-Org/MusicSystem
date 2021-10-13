@@ -6,29 +6,25 @@ export default class MusicCommand extends Modules.dj.DJCommand {
     }
 
     beforeRun(command) {
-        if (!this.voiceChannel) {
-            this.send('Please join a voice channel before using this command!');
-
-            return false;
-        }
-
         if (this.music.active()) {
             const voiceChannel = this.music.voiceChannel;
             if (!voiceChannel) {
-                this.music.reset();
+                this.music.reset(true);
 
                 return true;
             }
 
             if (!this.music.isDamonInVC(voiceChannel)) {
-                this.music.reset();
+                this.music.reset(true);
 
                 return true;
             }
+        }
 
-            if (voiceChannel.members.size === 1) {
-                this.music.reset();
-            }
+        if (!this.voiceChannel) {
+            this.send('Please join a voice channel before using this command!');
+
+            return false;
         }
 
         return true;
