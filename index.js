@@ -289,7 +289,7 @@ export default class Music extends ServerModule {
      * Disconnects the player if one exists
      */
     disconnect() {
-        if (this.player) {
+        if (!(this.player instanceof Promise)) {
             this.player.removeAllListeners();
 
             this.player.stopTrack();
@@ -469,7 +469,8 @@ export default class Music extends ServerModule {
         }
         else return null;
 
-        this.player?.removeAllListeners();
+        if (typeof this.player?.removeAllListeners === 'function')
+            this.player?.removeAllListeners();
         this.player = this.node?.joinChannel({
             channelId: voiceChannel.id,
             guildId: voiceChannel.guild.id,
@@ -478,7 +479,6 @@ export default class Music extends ServerModule {
 
         if (!this.player) return new Error('No LavaLink Nodes');
 
-        // Reconnect no matter what
         this.player.then(this.bindPlayer.bind(this));
 
         this.voiceChannel = voiceChannel;
