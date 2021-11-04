@@ -289,7 +289,7 @@ export default class Music extends ServerModule {
      * Disconnects the player if one exists
      */
     disconnect() {
-        if (!(this.player instanceof Promise)) {
+        if (typeof this.player?.removeAllListeners === 'function') {
             this.player.removeAllListeners();
 
             this.player.stopTrack();
