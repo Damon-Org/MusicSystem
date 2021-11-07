@@ -44,6 +44,10 @@ export default class Music extends ServerModule {
                 {
                     name: 'voiceLeave',
                     call: '_voiceLeave'
+                },
+                {
+                    name: 'voiceUpdate',
+                    call: '_voiceUpdate'
                 }
             ]
         });
@@ -935,5 +939,17 @@ export default class Music extends ServerModule {
         if (!voiceChannel.guild.me.voice.channel) {
             server.music.shutdown.instant();
         }
+    }
+
+    /**
+     * @param {Guild} guild
+     * @param {ServerMember} member
+     * @param {VoiceChannel} voiceChannel
+     */
+    _voiceUpdate(guild, member, voiceChannel) {
+        if (member.user.id !== this._m.user.id) return;
+        if (member.voice.serverDeaf) return;
+
+        member.voice.setDeaf(true);
     }
 }
