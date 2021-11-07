@@ -949,6 +949,8 @@ export default class Music extends ServerModule {
     _voiceUpdate(guild, member, voiceChannel) {
         if (member.user.id !== this._m.user.id) return;
         if (member.voice.serverDeaf) return;
+        if (!voiceChannel.members?.has(this._m.user.id)) return;
+        if (!member.permissions.has('DEAFEN_MEMBERS')) return;
 
         member.voice.setDeaf(true);
     }
