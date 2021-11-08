@@ -281,11 +281,6 @@ export default class Music extends ServerModule {
                 color: '#4f545c'
             }, false);
             this.lastPlayer.edit({ embeds: [ embed ], components: [] });
-
-            this.lastPlayer.reactions.removeAll()
-            .catch(err => {
-                this.textChannel?.send(`Unknown error occured\nThis generated the following error: \`\`\`js\n${err.stack}\`\`\`Contact ${this._m.config.creator} on Discord if this keeps occuring.`);
-            });
         }
     }
 
