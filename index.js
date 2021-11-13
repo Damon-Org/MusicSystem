@@ -927,7 +927,7 @@ export default class Music extends ServerModule {
         if (voiceChannel.members.size == 1 && !server.music.shutdown.type) {
             const msg = server.music.textChannel?.send(`The queue will be destroyed within 5 minutes, rejoin within that time to resume music playback.`);
 
-            server.music.shutdown.delay('time', 3e5, (msg) => msg.then(msg => { if (!msg.deleted) msg.delete() }), msg);
+            server.music.shutdown.delay('time', 3e5, (msg) => msg?.then(msg => { if (!msg.deleted) msg.delete() }), msg);
         }
         server.dj.remove(serverMember);
 
