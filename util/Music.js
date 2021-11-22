@@ -81,9 +81,9 @@ export default class MusicUtils {
                 data = await this.music.node.rest.resolve(`https://youtu.be/${videoId}`);
 
                 attempt++;
-            } while ((!data || data.tracks.length == 0) && attempt < 3);
+            } while ((!data || !data instanceof Object || data.tracks.length === 0) && attempt < 3);
 
-            if (!data || data.length == 0) {
+            if (!data || !data instanceof Object || data.tracks.length === 0) {
                 const msg = await newMsg.channel.send(`${serverMember}, failed to queue song, perhaps the song is limited in country or age restricted?`);
                 setTimeout(msg.delete, 5e3);
 
