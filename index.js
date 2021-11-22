@@ -444,10 +444,6 @@ export default class Music extends ServerModule {
         return voiceChannel.members?.has(this._m.user.id);
     }
 
-    nodeError(err) {
-        this.log.error('MUSIC_SYSTEM', 'Node encountered an error:', err);
-    }
-
     join(voiceChannel = this.voiceChannel) {
         if (!voiceChannel || !voiceChannel instanceof Discord.VoiceChannel) return new Error(`Join method expects a VoiceChannel instance.`);
 
@@ -483,6 +479,10 @@ export default class Music extends ServerModule {
         this.voiceChannel = voiceChannel;
 
         return null;
+    }
+
+    nodeError(err) {
+        this.log.error('MUSIC_SYSTEM', 'Node encountered an error:', err);
     }
 
     /**
