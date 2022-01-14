@@ -9,6 +9,8 @@ export default class VolumeDefault extends Modules.commandRegistrar.BaseCommand 
         super(main);
 
         this.register(VolumeDefault, {
+            disabled: true,
+
             category: category,
             guild_only: true,
 
